@@ -1,1 +1,0 @@
-// Cover letter form logic
