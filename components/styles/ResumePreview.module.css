@@ -1,0 +1,25 @@
+/* styles/ResumePreview.module.css */
+.previewContainer {
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  margin-top: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+.previewContainer h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.previewContainer section {
+  margin-top: 1.5rem;
+}
+
+.previewContainer h3 {
+  margin-bottom: 0.3rem;
+  font-size: 1.3rem;
+  color: #222;
+}
