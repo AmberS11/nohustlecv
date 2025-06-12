@@ -1,0 +1,48 @@
+/* Creative.module.css */
+
+.resume {
+  font-family: 'Segoe UI', sans-serif;
+  background: #fefefe;
+  color: #333;
+  padding: 40px;
+  max-width: 800px;
+  margin: auto;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.header {
+  text-align: center;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+}
+
+.title {
+  color: #ff6b6b;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ff6b6b;
+  display: inline-block;
+}
+
+.section {
+  margin-top: 30px;
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill {
+  background-color: #ffefef;
+  color: #c0392b;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.entry {
+  margin-top: 15px;
+}
