@@ -1,0 +1,32 @@
+/* Functional.module.css */
+
+.resume {
+  font-family: 'Arial', sans-serif;
+  padding: 30px;
+  background: #fff;
+  color: #222;
+  line-height: 1.6;
+}
+
+.name {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.contact {
+  font-size: 0.95em;
+  margin-bottom: 20px;
+}
+
+.section {
+  margin-top: 25px;
+}
+
+.skills {
+  list-style-type: square;
+  padding-left: 20px;
+}
+
+.item {
+  margin-top: 10px;
+}
