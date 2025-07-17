@@ -1,1 +1,96 @@
-// globals.css
+/* globals.css */
+
+/* 1. CSS Reset (normalize basics) */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 2. Body Defaults */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+  color: #1a1a1a;
+  line-height: 1.6;
+}
+
+/* 3. Responsive Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* 4. Links */
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* 5. Headings */
+h1, h2, h3, h4 {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+/* 6. Dark Mode Compatibility */
+body.dark {
+  background-color: #121212;
+  color: #e5e5e5;
+}
+
+body.dark a {
+  color: #60a5fa;
+}
+
+body.dark h1, body.dark h2, body.dark h3 {
+  color: #ffffff;
+}
+
+/* 7. Buttons */
+button {
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+/* 8. Forms */
+input, textarea, select {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+/* 9. Utility Classes */
+.text-center {
+  text-align: center;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.rounded {
+  border-radius: 0.5rem;
+}
