@@ -36,3 +36,29 @@ const Feedback = () => {
                 onMouseEnter={() => setHover(star)}
                 onMouseLeave={() => setHover(0)}
               >
+                ★
+              </button>
+            ))}
+          </div>
+
+          <textarea
+            className="w-full p-3 border rounded-md dark:bg-gray-700 dark:text-white"
+            placeholder="Optional comment..."
+            rows="3"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+
+          <button
+            type="submit"
+            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          >
+            Submit
+          </button>
+        </form>
+      )}
+    </div>
+  );
+};
+
+export default Feedback;
