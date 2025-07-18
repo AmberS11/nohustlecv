@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import generateCoverLetter from './utils/generateCoverLetter';
+import generateCoverLetter from '../utils/generateCoverLetter';
+
 
 export default function CoverLetterAI() {
   const router = useRouter();
