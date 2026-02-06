@@ -1,9 +1,20 @@
+import Header from '@/components/Header'
+import Hero from '@/components/Hero'
+import Features from '@/components/Features'
+import Footer from '@/components/Footer'
+
 export default function Home() {
   return (
-    <div style={{ padding: 50, textAlign: 'center' }}>
-      <h1>🚀 NoHustleCV</h1>
-      <p>Premium resumes, fairly priced.</p>
-      <p>Building something cosmic...</p>
-    </div>
-  );
+    <main className="min-h-screen">
+      <Header />
+      <Hero />
+      <Features />
+      <Footer />
+      {/* Premium background elements */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
+      </div>
+    </main>
+  )
 }
