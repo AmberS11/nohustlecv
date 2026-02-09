@@ -1,8 +1,6 @@
-'use client'
-
 import './globals.css'
 import ThemeProvider from '../components/ThemeProvider'
-import Header from '../components/Header'  // IMPORT THE HEADER
+import Header from '../components/Header'
 
 export const metadata = {
   title: 'NoHustleCV — Professional Resumes, Fairly Priced',
@@ -14,7 +12,6 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <body className="bg-light dark:bg-dark text-dark dark:text-light">
         <ThemeProvider>
-          {/* HEADER MUST BE INSIDE THEME PROVIDER */}
           <Header />
           <div className="min-h-screen flex flex-col">
             {children}
