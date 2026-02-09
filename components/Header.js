@@ -6,7 +6,11 @@ import { Menu, X, Sun, Moon } from 'lucide-react'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { theme, toggleTheme } = useTheme()
+  
+  // SAFE THEME DESTRUCTURING (FIX FOR BUILD ERROR)
+  const themeContext = useTheme()
+  const theme = themeContext?.theme || 'light'
+  const toggleTheme = themeContext?.toggleTheme || (() => {})
 
   const navigation = [
     { name: 'Home', href: '#' },
