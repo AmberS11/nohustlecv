@@ -10,8 +10,10 @@ export function useTheme() {
 
 export default function ThemeProvider({ children }) {
   const [theme, setTheme] = useState('light')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     // Check localStorage or system preference
     const savedTheme = localStorage.getItem('nohustlecv-theme')
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -24,19 +26,24 @@ export default function ThemeProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    // Apply theme to document
+    if (!mounted) return
+    
     const root = document.documentElement
-    if (theme === 'dark') {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
-    // Save to localStorage
+    // Remove both classes first
+    root.classList.remove('light', 'dark')
+    // Add current theme class
+    root.classList.add(theme)
+    
     localStorage.setItem('nohustlecv-theme', theme)
-  }, [theme])
+  }, [theme, mounted])
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light')
+  }
+
+  // Don't render until mounted (client-side)
+  if (!mounted) {
+    return <>{children}</>
   }
 
   return (
