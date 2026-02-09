@@ -110,17 +110,19 @@ export default function Header() {
                   {item.name}
                 </a>
               ))}
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+              
+              {/* MOBILE AUTH BUTTONS - SINGLE SET */}
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
                 <a
                   href="#"
-                  className="block px-4 py-2 text-gray-700 dark:text-gray-300 mb-2"
+                  className="block px-4 py-3 text-center text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Log in
                 </a>
                 <a
                   href="#"
-                  className="block px-4 py-2 bg-primary text-white rounded-lg text-center"
+                  className="block px-4 py-3 bg-primary text-white rounded-lg text-center hover:bg-primary/90 transition-colors font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Get Started
