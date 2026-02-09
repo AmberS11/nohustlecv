@@ -2,10 +2,16 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 
-const ThemeContext = createContext()
+// FIX 1: Add default values to context
+const ThemeContext = createContext({
+  theme: 'light',
+  toggleTheme: () => {}
+})
 
 export function useTheme() {
-  return useContext(ThemeContext)
+  const context = useContext(ThemeContext)
+  // FIX 2: Return the context directly (no error during build)
+  return context
 }
 
 export default function ThemeProvider({ children }) {
@@ -14,27 +20,33 @@ export default function ThemeProvider({ children }) {
 
   useEffect(() => {
     setMounted(true)
-    // Check localStorage or system preference
-    const savedTheme = localStorage.getItem('nohustlecv-theme')
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     
-    if (savedTheme) {
-      setTheme(savedTheme)
-    } else if (systemPrefersDark) {
-      setTheme('dark')
+    // FIX 3: Check if we're on client before using browser APIs
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('nohustlecv-theme')
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      
+      if (savedTheme) {
+        setTheme(savedTheme)
+      } else if (systemPrefersDark) {
+        setTheme('dark')
+      }
     }
   }, [])
 
   useEffect(() => {
     if (!mounted) return
     
-    const root = document.documentElement
-    // Remove both classes first
-    root.classList.remove('light', 'dark')
-    // Add current theme class
-    root.classList.add(theme)
-    
-    localStorage.setItem('nohustlecv-theme', theme)
+    // FIX 4: Safely access document
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement
+      root.classList.remove('light', 'dark')
+      root.classList.add(theme)
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('nohustlecv-theme', theme)
+      }
+    }
   }, [theme, mounted])
 
   const toggleTheme = () => {
