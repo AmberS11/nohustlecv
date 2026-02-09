@@ -1,3 +1,5 @@
+'use client'  // ADD THIS LINE
+
 import './globals.css'
 import ThemeProvider from '../components/ThemeProvider'
 
