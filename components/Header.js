@@ -55,6 +55,7 @@ export default function Header() {
               onClick={toggleTheme}
               className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               aria-label="Toggle theme"
+              title="Toggle dark/light mode"
             >
               {theme === 'light' ? (
                 <Moon className="w-5 h-5 text-gray-700" />
@@ -81,7 +82,7 @@ export default function Header() {
 
             {/* Mobile menu button - VISIBLE ONLY ON MOBILE */}
             <button
-              className="md:hidden p-2"  {/* CRITICAL: hidden on desktop */}
+              className="md:hidden p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
