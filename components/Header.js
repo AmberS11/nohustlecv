@@ -25,6 +25,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-dark/80 backdrop-blur-md">
       <nav className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
+          
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg" />
@@ -33,7 +34,7 @@ export default function Header() {
             </span>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - HIDDEN ON MOBILE */}
           <div className="hidden md:flex items-center space-x-8">
             {navigation.map((item) => (
               <a
@@ -48,6 +49,7 @@ export default function Header() {
 
           {/* Right side buttons */}
           <div className="flex items-center space-x-4">
+            
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -61,7 +63,7 @@ export default function Header() {
               )}
             </button>
 
-            {/* Auth buttons */}
+            {/* Desktop Auth buttons - HIDDEN ON MOBILE */}
             <div className="hidden md:flex items-center space-x-3">
               <a
                 href="#"
@@ -77,22 +79,23 @@ export default function Header() {
               </a>
             </div>
 
-            {/* Mobile menu button */}
+            {/* Mobile menu button - VISIBLE ONLY ON MOBILE */}
             <button
-              className="md:hidden p-2"
+              className="md:hidden p-2"  {/* CRITICAL: hidden on desktop */}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
+                <X className="w-6 h-6 text-gray-700 dark:text-gray-300" />
               ) : (
-                <Menu className="w-6 h-6" />
+                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
               )}
             </button>
+            
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation - ONLY SHOWS WHEN mobileMenuOpen IS TRUE */}
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-800 pt-4">
             <div className="flex flex-col space-y-3">
@@ -110,12 +113,14 @@ export default function Header() {
                 <a
                   href="#"
                   className="block px-4 py-2 text-gray-700 dark:text-gray-300 mb-2"
+                  onClick={() => setMobileMenuOpen(false)}
                 >
                   Log in
                 </a>
                 <a
                   href="#"
                   className="block px-4 py-2 bg-primary text-white rounded-lg text-center"
+                  onClick={() => setMobileMenuOpen(false)}
                 >
                   Get Started
                 </a>
@@ -123,6 +128,7 @@ export default function Header() {
             </div>
           </div>
         )}
+        
       </nav>
     </header>
   )
