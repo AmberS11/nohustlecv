@@ -18,7 +18,7 @@ export default function Header() {
     { name: 'Cover Letter', href: '#' },
     { name: 'ATS Checker', href: '#' },
     { name: 'Pricing', href: '#' },
-    { name: 'For Organizations', href: '#' },
+    { name: 'Campus Partnerships', href: '#' },
   ]
 
   return (
