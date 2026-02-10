@@ -94,32 +94,32 @@ export default function Features() {
           ))}
         </div>
 
-        {/* Comparison section */}
-        <div className="mt-20 bg-gradient-to-br from-dark to-gray-900 rounded-3xl p-8 md:p-12 text-white">
+        {/* Comparison section - FIXED FOR MOBILE */}
+        <div className="mt-20 bg-gradient-to-br from-dark to-gray-900 rounded-3xl p-6 md:p-12 text-white">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <h3 className="text-3xl font-bold mb-4">
+              <h3 className="text-2xl md:text-3xl font-bold mb-4">
                 Premium shouldn't mean overpriced
               </h3>
-              <p className="text-gray-300 mb-6">
+              <p className="text-gray-300 mb-6 text-sm md:text-base">
                 While competitors charge ₹2,000+ for similar features, we deliver premium quality at a fair price.
               </p>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="bg-white/10 rounded-xl p-6">
-                  <div className="text-4xl font-bold mb-2">₹799</div>
-                  <div className="text-gray-300">Our yearly plan</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                <div className="bg-white/10 rounded-xl p-4 md:p-6">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">₹799</div>
+                  <div className="text-gray-300 text-sm md:text-base">Our yearly plan</div>
                 </div>
-                <div className="bg-white/10 rounded-xl p-6">
-                  <div className="text-4xl font-bold mb-2">₹2,400</div>
-                  <div className="text-gray-300">Competitor average</div>
+                <div className="bg-white/10 rounded-xl p-4 md:p-6">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">₹2,400</div>
+                  <div className="text-gray-300 text-sm md:text-base">Competitor average</div>
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-center">
               <div className="text-center">
-                <div className="text-6xl font-bold mb-2">¼</div>
-                <div className="text-xl">the price</div>
-                <div className="text-gray-300 mt-2">Same premium quality</div>
+                <div className="text-4xl md:text-6xl font-bold mb-2">¼</div>
+                <div className="text-lg md:text-xl">the price</div>
+                <div className="text-gray-300 mt-2 text-sm md:text-base">Same premium quality</div>
               </div>
             </div>
           </div>
