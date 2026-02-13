@@ -6,11 +6,8 @@ import { Menu, X, Sun, Moon } from 'lucide-react'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  
-  // SAFE THEME DESTRUCTURING (FIX FOR BUILD ERROR)
-  const themeContext = useTheme()
-  const theme = themeContext?.theme || 'light'
-  const toggleTheme = themeContext?.toggleTheme || (() => {})
+  const { theme, toggleTheme } = useTheme()
+  const [identity, setIdentity] = useState('professional')
 
   const navigation = [
     { name: 'Home', href: '#' },
@@ -34,7 +31,7 @@ export default function Header() {
             </span>
           </div>
 
-          {/* Desktop Navigation - HIDDEN ON MOBILE */}
+          {/* Desktop Navigation + Auth */}
           <div className="hidden md:flex items-center space-x-8">
             {navigation.map((item) => (
               <a
@@ -45,27 +42,9 @@ export default function Header() {
                 {item.name}
               </a>
             ))}
-          </div>
-
-          {/* Right side buttons */}
-          <div className="flex items-center space-x-4">
             
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              aria-label="Toggle theme"
-              title="Toggle dark/light mode"
-            >
-              {theme === 'light' ? (
-                <Moon className="w-5 h-5 text-gray-700" />
-              ) : (
-                <Sun className="w-5 h-5 text-yellow-400" />
-              )}
-            </button>
-
-            {/* Desktop Auth buttons - HIDDEN ON MOBILE */}
-            <div className="hidden md:flex items-center space-x-3">
+            {/* Desktop Auth Buttons */}
+            <div className="flex items-center space-x-3 ml-4">
               <a
                 href="#"
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors"
@@ -79,24 +58,54 @@ export default function Header() {
                 Get Started
               </a>
             </div>
+          </div>
 
-            {/* Mobile menu button - VISIBLE ONLY ON MOBILE */}
+          {/* Right side icons */}
+          <div className="flex items-center space-x-4">
+            
+            {/* IDENTITY DROPDOWN - STEP 1 */}
+            <div className="hidden md:flex items-center gap-2 mr-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">I am a</span>
+              <select 
+                value={identity}
+                onChange={(e) => setIdentity(e.target.value)}
+                className="bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="student">Student</option>
+                <option value="professional">Professional</option>
+                <option value="career_switcher">Career Switcher</option>
+              </select>
+            </div>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === 'light' ? (
+                <Moon className="w-5 h-5 text-gray-700" />
+              ) : (
+                <Sun className="w-5 h-5 text-yellow-400" />
+              )}
+            </button>
+
+            {/* Mobile menu button */}
             <button
               className="md:hidden p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                <X className="w-6 h-6" />
               ) : (
-                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                <Menu className="w-6 h-6" />
               )}
             </button>
-            
           </div>
         </div>
 
-        {/* Mobile Navigation - ONLY SHOWS WHEN mobileMenuOpen IS TRUE */}
+        {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-800 pt-4">
             <div className="flex flex-col space-y-3">
@@ -111,18 +120,32 @@ export default function Header() {
                 </a>
               ))}
               
-              {/* MOBILE AUTH BUTTONS - SINGLE SET */}
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
+              {/* Mobile Identity Dropdown */}
+              <div className="flex items-center gap-2 px-4 py-2 border-t border-gray-200 dark:border-gray-800 mt-2 pt-4">
+                <span className="text-sm text-gray-500 dark:text-gray-400">I am a</span>
+                <select 
+                  value={identity}
+                  onChange={(e) => setIdentity(e.target.value)}
+                  className="bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary flex-1"
+                >
+                  <option value="student">Student</option>
+                  <option value="professional">Professional</option>
+                  <option value="career_switcher">Career Switcher</option>
+                </select>
+              </div>
+
+              {/* Mobile Auth Buttons */}
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
                 <a
                   href="#"
-                  className="block px-4 py-3 text-center text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary transition-colors"
+                  className="block px-4 py-2 text-gray-700 dark:text-gray-300 mb-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Log in
                 </a>
                 <a
                   href="#"
-                  className="block px-4 py-3 bg-primary text-white rounded-lg text-center hover:bg-primary/90 transition-colors font-medium"
+                  className="block px-4 py-2 bg-primary text-white rounded-lg text-center"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Get Started
@@ -131,7 +154,6 @@ export default function Header() {
             </div>
           </div>
         )}
-        
       </nav>
     </header>
   )
