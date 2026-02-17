@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { useTheme } from './ThemeProvider'
 import { Menu, X, Sun, Moon } from 'lucide-react'
+import { useIdentity } from '../context/IdentityContext'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
-  const [identity, setIdentity] = useState('professional')
+  const { identity, setIdentity } = useIdentity()
 
   const navigation = [
   { name: 'Home', href: '/' },
