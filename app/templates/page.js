@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Header from '@/components/Header'
-import TemplateGallery from '@/components/templates/TemplateGallery'
-import Footer from '@/components/Footer'
+import Header from '../components/Header'
+import TemplateGallery from '../components/templates/TemplateGallery'
+import Footer from '../components/Footer'
 
 export default function TemplatesPage() {
   const [identity, setIdentity] = useState('professional')
@@ -21,14 +21,12 @@ export default function TemplatesPage() {
 
   // Update Header's identity when it changes (for consistency)
   useEffect(() => {
-    // This will be picked up by Header via the same event system
     const event = new CustomEvent('identityChanged', { detail: identity })
     window.dispatchEvent(event)
   }, [identity])
 
   const handleTemplateSelect = (templateId) => {
     setSelectedTemplate(templateId)
-    // Here you would save to user preferences (localStorage or Firebase)
     localStorage.setItem('selectedTemplate', templateId)
   }
 
@@ -58,7 +56,7 @@ export default function TemplatesPage() {
             or upgrade to unlock premium designs.
           </p>
           
-          {/* Identity selector (duplicate for clarity) */}
+          {/* Identity selector */}
           <div className="mt-8 inline-flex items-center gap-3 bg-white dark:bg-gray-800 p-2 rounded-xl border border-gray-200 dark:border-gray-700">
             <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">Preview as:</span>
             <select
@@ -87,7 +85,8 @@ export default function TemplatesPage() {
             Ready to build your resume?
           </h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            You've selected <span className="text-primary font-semibold">
+            You've selected{' '}
+            <span className="text-primary font-semibold">
               {selectedTemplate === 'modern-professional' && 'Modern Professional'}
               {selectedTemplate === 'creative-edge' && 'Creative Edge'}
               {selectedTemplate === 'minimal-elegance' && 'Minimal Elegance'}
