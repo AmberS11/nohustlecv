@@ -8,8 +8,16 @@ export default function TemplateGallery({
   userIdentity = 'professional',
   onSelectTemplate 
 }) {
-  const [selectedTemplate, setSelectedTemplate] = useState('modern-professional')
+  const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+
+  // Load saved template from localStorage on mount
+  useEffect(() => {
+    const savedTemplate = localStorage.getItem('selectedTemplate')
+    if (savedTemplate) {
+      setSelectedTemplate(savedTemplate)
+    }
+  }, [])
 
   // Separate templates by access
   const freeTemplates = templates.filter(t => !t.isPremium)
@@ -25,6 +33,7 @@ export default function TemplateGallery({
     }
     
     setSelectedTemplate(templateId)
+    localStorage.setItem('selectedTemplate', templateId)
     if (onSelectTemplate) {
       onSelectTemplate(templateId)
     }
@@ -141,17 +150,19 @@ export default function TemplateGallery({
         )}
 
         {/* Current selection indicator */}
-        <div className="mt-8 p-4 bg-primary/5 rounded-xl border border-primary/20">
-          <p className="text-center text-dark dark:text-light">
-            <span className="font-medium">Currently selected:</span>{' '}
-            <span className="text-primary">
-              {templates.find(t => t.id === selectedTemplate)?.name || 'Modern Professional'}
-            </span>
-          </p>
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-1">
-            This template will be used to build your resume.
-          </p>
-        </div>
+        {selectedTemplate && (
+          <div className="mt-8 p-4 bg-primary/5 rounded-xl border border-primary/20">
+            <p className="text-center text-dark dark:text-light">
+              <span className="font-medium">Currently selected:</span>{' '}
+              <span className="text-primary">
+                {templates.find(t => t.id === selectedTemplate)?.name || 'Modern Professional'}
+              </span>
+            </p>
+            <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-1">
+              This template will be used to build your resume.
+            </p>
+          </div>
+        )}
 
       </div>
     </section>
