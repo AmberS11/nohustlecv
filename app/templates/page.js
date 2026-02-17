@@ -1,43 +1,36 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Header from '../../components/Header'
 import TemplateGallery from '../../components/templates/TemplateGallery'
 import Footer from '../../components/Footer'
 import { useIdentity } from '../../context/IdentityContext'
 
 export default function TemplatesPage() {
+  const router = useRouter()
   const { identity, setIdentity } = useIdentity()
-  const [selectedTemplate, setSelectedTemplate] = useState('modern-professional')
+  const [selectedTemplate, setSelectedTemplate] = useState(null)
 
-  // Listen for identity changes from Header
+  // Load selected template on mount
   useEffect(() => {
-    const handleIdentityChange = (event) => {
-      setIdentity(event.detail)
+    const saved = localStorage.getItem('selectedTemplate')
+    if (saved) {
+      setSelectedTemplate(saved)
     }
-    
-    window.addEventListener('identityChanged', handleIdentityChange)
-    return () => window.removeEventListener('identityChanged', handleIdentityChange)
   }, [])
-
-  // Update Header's identity when it changes (for consistency)
-  useEffect(() => {
-    const event = new CustomEvent('identityChanged', { detail: identity })
-    window.dispatchEvent(event)
-  }, [identity])
 
   const handleTemplateSelect = (templateId) => {
     setSelectedTemplate(templateId)
-    localStorage.setItem('selectedTemplate', templateId)
   }
 
-  // Load saved template on mount
-  useEffect(() => {
-    const savedTemplate = localStorage.getItem('selectedTemplate')
-    if (savedTemplate) {
-      setSelectedTemplate(savedTemplate)
+  const handleStartBuilding = () => {
+    if (selectedTemplate) {
+      router.push('/resume')
+    } else {
+      alert('Please select a template first')
     }
-  }, [])
+  }
 
   return (
     <main className="min-h-screen">
@@ -57,7 +50,7 @@ export default function TemplatesPage() {
             or upgrade to unlock premium designs.
           </p>
           
-          {/* Identity selector */}
+          {/* Identity selector (duplicate for clarity) */}
           <div className="mt-8 inline-flex items-center gap-3 bg-white dark:bg-gray-800 p-2 rounded-xl border border-gray-200 dark:border-gray-700">
             <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">Preview as:</span>
             <select
@@ -86,15 +79,23 @@ export default function TemplatesPage() {
             Ready to build your resume?
           </h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            You've selected{' '}
-            <span className="text-primary font-semibold">
-              {selectedTemplate === 'modern-professional' && 'Modern Professional'}
-              {selectedTemplate === 'creative-edge' && 'Creative Edge'}
-              {selectedTemplate === 'minimal-elegance' && 'Minimal Elegance'}
-            </span>
+            {selectedTemplate ? (
+              <>You've selected{' '}
+                <span className="text-primary font-semibold">
+                  {selectedTemplate === 'modern-professional' && 'Modern Professional'}
+                  {selectedTemplate === 'creative-edge' && 'Creative Edge'}
+                  {selectedTemplate === 'minimal-elegance' && 'Minimal Elegance'}
+                </span>
+              </>
+            ) : (
+              'Select a template to get started'
+            )}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors text-lg font-semibold">
+            <button 
+              onClick={handleStartBuilding}
+              className="px-8 py-4 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors text-lg font-semibold"
+            >
               Start Building →
             </button>
             <button className="px-8 py-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors text-lg font-semibold">
