@@ -23,21 +23,31 @@ export default function TemplateGallery({
   const freeTemplates = templates.filter(t => !t.isPremium)
   const premiumTemplates = templates.filter(t => t.isPremium)
 
-  const handleTemplateSelect = (templateId) => {
-    const template = templates.find(t => t.id === templateId)
-    
-    // If premium template is selected by free user, show upgrade prompt
-    if (template?.isPremium) {
-      setShowUpgradeModal(true)
-      return
-    }
-    
-    setSelectedTemplate(templateId)
-    localStorage.setItem('selectedTemplate', templateId)
-    if (onSelectTemplate) {
-      onSelectTemplate(templateId)
-    }
+const handleTemplateSelect = (templateId) => {
+  console.log('Template selected:', templateId) // For debugging
+  
+  const template = templates.find(t => t.id === templateId)
+  
+  if (!template) {
+    console.error('Template not found:', templateId)
+    return
   }
+  
+  // If premium template is selected by free user, show upgrade prompt
+  if (template.isPremium) {
+    console.log('Premium template clicked, showing modal')
+    setShowUpgradeModal(true)
+    return
+  }
+  
+  // Free template selected
+  console.log('Free template selected:', templateId)
+  setSelectedTemplate(templateId)
+  localStorage.setItem('selectedTemplate', templateId)
+  if (onSelectTemplate) {
+    onSelectTemplate(templateId)
+  }
+}
 
   return (
     <section className="py-12">
