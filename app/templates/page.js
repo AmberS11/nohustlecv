@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import Header from '../../components/Header'
 import TemplateGallery from '../../components/templates/TemplateGallery'
 import Footer from '../../components/Footer'
+import { useIdentity } from '../context/IdentityContext'
 
 export default function TemplatesPage() {
-  const [identity, setIdentity] = useState('professional')
+  const { identity, setIdentity } = useIdentity()
   const [selectedTemplate, setSelectedTemplate] = useState('modern-professional')
 
   // Listen for identity changes from Header
