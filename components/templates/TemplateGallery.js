@@ -115,49 +115,57 @@ const handleTemplateSelect = (templateId) => {
         </div>
 
         {/* Upgrade Modal */}
-        {showUpgradeModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md p-8 relative">
-              <button 
-                onClick={() => setShowUpgradeModal(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                ✕
-              </button>
-              
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-3xl">✨</span>
-                </div>
-                
-                <h3 className="text-2xl font-bold mb-3 text-dark dark:text-light">
-                  Unlock Premium Templates
-                </h3>
-                
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Get access to all 3 premium templates, unlimited AI cover letters, 
-                  and priority support for just ₹799/year.
-                </p>
-                
-                <div className="space-y-3">
-                  <button className="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity">
-                    Upgrade to PRO — ₹799/year
-                  </button>
-                  <button 
-                    onClick={() => setShowUpgradeModal(false)}
-                    className="w-full border border-gray-300 dark:border-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    Maybe later
-                  </button>
-                </div>
-                
-                <p className="text-xs text-gray-500 mt-4">
-                  ₹799/year = ₹67/month. Save 78% vs monthly plan.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+{showUpgradeModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md p-8 relative">
+      <button 
+        onClick={() => setShowUpgradeModal(false)}
+        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+      >
+        ✕
+      </button>
+      
+      <div className="text-center">
+        <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full mx-auto mb-4 flex items-center justify-center">
+          <span className="text-3xl">✨</span>
+        </div>
+        
+        <h3 className="text-2xl font-bold mb-3 text-dark dark:text-light">
+          Unlock Premium Templates
+        </h3>
+        
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          Get access to all 3 premium templates, unlimited AI cover letters, 
+          and priority support for just ₹799/year.
+        </p>
+        
+        <div className="space-y-3">
+          <button className="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity">
+            Upgrade to PRO — ₹799/year
+          </button>
+          
+          <button 
+            onClick={() => setShowUpgradeModal(false)}
+            className="w-full border border-gray-300 dark:border-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            Choose a different template
+          </button>
+          
+          <button 
+            onClick={() => setShowUpgradeModal(false)}
+            className="w-full text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          >
+            Maybe later
+          </button>
+        </div>
+        
+        <p className="text-xs text-gray-500 mt-4">
+          ₹799/year = ₹67/month. Save 78% vs monthly plan.
+        </p>
+      </div>
+    </div>
+  </div>
+)}
 
         {/* Current selection indicator */}
         {selectedTemplate && (
