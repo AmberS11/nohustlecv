@@ -42,7 +42,7 @@ export default function TemplateCard({
 
   return (
     <div
-      onClick={() => !template.isPremium && onSelect(template.id)}
+      onClick={() =>  onSelect(template.id)}
       className={`
         group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden
         border-2 transition-all duration-300 cursor-pointer
