@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Header from '../components/Header'
-import TemplateGallery from '../components/templates/TemplateGallery'
-import Footer from '../components/Footer'
+import Header from '../../components/Header'
+import TemplateGallery from '../../components/templates/TemplateGallery'
+import Footer from '../../components/Footer'
 
 export default function TemplatesPage() {
   const [identity, setIdentity] = useState('professional')
