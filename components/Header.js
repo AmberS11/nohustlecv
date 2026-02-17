@@ -10,13 +10,14 @@ export default function Header() {
   const [identity, setIdentity] = useState('professional')
 
   const navigation = [
-    { name: 'Home', href: '#' },
-    { name: 'Resume Builder', href: '#' },
-    { name: 'Cover Letter', href: '#' },
-    { name: 'ATS Checker', href: '#' },
-    { name: 'Pricing', href: '#' },
-    { name: 'Campus Partnerships', href: '#' },
-  ]
+  { name: 'Home', href: '/' },
+  { name: 'Templates', href: '/templates' },  // ← ADD THIS LINE
+  { name: 'Resume Builder', href: '#' },
+  { name: 'Cover Letter', href: '#' },
+  { name: 'ATS Checker', href: '#' },
+  { name: 'Pricing', href: '#' },
+  { name: 'Campus Partnerships', href: '#' },
+]
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-dark/80 backdrop-blur-md">
