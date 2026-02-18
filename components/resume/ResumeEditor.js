@@ -18,7 +18,16 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
   const loadSavedData = () => {
     const saved = localStorage.getItem('resumeData')
     if (saved) {
-      return JSON.parse(saved)
+      try {
+        const parsed = JSON.parse(saved)
+        // Ensure customSections exists (for backward compatibility)
+        if (!parsed.customSections) {
+          parsed.customSections = []
+        }
+        return parsed
+      } catch (e) {
+        console.error('Error parsing saved data:', e)
+      }
     }
     return {
       personal: {
@@ -388,7 +397,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
       
       default:
         // Check if it's a custom section
-        if (sectionType.startsWith('custom-')) {
+        if (sectionType && sectionType.startsWith('custom')) {
           const customSection = resumeData.customSections.find(s => s.id === sectionType)
           if (!customSection) return null
           
@@ -506,7 +515,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
           </button>
 
           {/* Custom Sections Editor */}
-          {resumeData.customSections.length > 0 && (
+          {resumeData.customSections && resumeData.customSections.length > 0 && (
             <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
               <h3 className="font-semibold mb-4 text-dark dark:text-light">Custom Sections</h3>
               {resumeData.customSections.map((section, idx) => (
