@@ -3,34 +3,50 @@
 import { useState, useEffect } from 'react'
 import { useIdentity } from '../../context/IdentityContext'
 import { templates, getSectionOrder } from '../templates/TemplateData'
-import { GripVertical, Plus, Trash2 } from 'lucide-react'
+import { GripVertical, Plus, Trash2, Save } from 'lucide-react'
 
 export default function ResumeEditor({ templateId = 'modern-professional' }) {
   const { identity } = useIdentity()
-  const [resumeData, setResumeData] = useState({
-    personal: {
-      name: 'John Doe',
-      title: 'Software Engineer',
-      email: 'john@example.com',
-      phone: '+91 98765 43210',
-      location: 'Mumbai, India'
-    },
-    summary: 'Experienced software engineer with a passion for building beautiful products.',
-    experience: [
-      { id: 'exp1', company: 'Tech Corp', role: 'Senior Developer', years: '2022-Present', description: 'Led team of 5 developers building cloud infrastructure.' },
-      { id: 'exp2', company: 'Startup Inc', role: 'Developer', years: '2020-2022', description: 'Built mobile apps using React Native.' }
-    ],
-    education: [
-      { id: 'edu1', school: 'University of Mumbai', degree: 'B.Tech Computer Science', year: '2020', grade: '8.9 CGPA' }
-    ],
-    skills: ['JavaScript', 'React', 'Node.js', 'Python', 'UI/UX']
-  })
+  
+  // Load from localStorage or use defaults
+  const loadSavedData = () => {
+    const saved = localStorage.getItem('resumeData')
+    if (saved) {
+      return JSON.parse(saved)
+    }
+    return {
+      personal: {
+        name: 'John Doe',
+        title: 'Software Engineer',
+        email: 'john@example.com',
+        phone: '+91 98765 43210',
+        location: 'Mumbai, India'
+      },
+      summary: 'Experienced software engineer with a passion for building beautiful products.',
+      experience: [
+        { id: 'exp1', company: 'Tech Corp', role: 'Senior Developer', years: '2022-Present', description: 'Led team of 5 developers building cloud infrastructure.' },
+        { id: 'exp2', company: 'Startup Inc', role: 'Developer', years: '2020-2022', description: 'Built mobile apps using React Native.' }
+      ],
+      education: [
+        { id: 'edu1', school: 'University of Mumbai', degree: 'B.Tech Computer Science', year: '2020', grade: '8.9 CGPA' }
+      ],
+      skills: ['JavaScript', 'React', 'Node.js', 'Python', 'UI/UX']
+    }
+  }
 
+  const [resumeData, setResumeData] = useState(loadSavedData())
+  const [lastSaved, setLastSaved] = useState(null)
   const [draggedItem, setDraggedItem] = useState(null)
   const [dragOverItem, setDragOverItem] = useState(null)
   const [selectedTemplate, setSelectedTemplate] = useState(
     templates.find(t => t.id === templateId) || templates[0]
   )
+
+  // Autosave whenever data changes
+  useEffect(() => {
+    localStorage.setItem('resumeData', JSON.stringify(resumeData))
+    setLastSaved(new Date().toLocaleTimeString())
+  }, [resumeData])
 
   useEffect(() => {
     const template = templates.find(t => t.id === templateId) || templates[0]
@@ -38,6 +54,12 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
   }, [templateId])
 
   const sectionOrder = getSectionOrder(templateId, identity)
+
+  // Reset to default
+  const resetToDefault = () => {
+    localStorage.removeItem('resumeData')
+    window.location.reload()
+  }
 
   // Drag handlers
   const handleDragStart = (e, section, index) => {
@@ -54,7 +76,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
     e.preventDefault()
     
     if (!draggedItem) return
-    if (draggedItem.section !== targetSection) return // Can't drag across sections yet
+    if (draggedItem.section !== targetSection) return
 
     const newData = { ...resumeData }
     const items = [...newData[draggedItem.section]]
@@ -344,7 +366,17 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
       {/* Left Panel - Editor */}
       <div className="lg:w-1/2 p-6 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold mb-6 text-dark dark:text-light">Edit Your Resume</h2>
+          
+          {/* Header with save indicator */}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-dark dark:text-light">Edit Your Resume</h2>
+            {lastSaved && (
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <Save className="w-3 h-3" />
+                <span>Saved {lastSaved}</span>
+              </div>
+            )}
+          </div>
           
           {/* Personal Info */}
           <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
@@ -408,6 +440,14 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               Drag sections with <GripVertical className="inline w-3 h-3" /> to reorder
             </p>
           </div>
+
+          {/* Reset button */}
+          <button
+            onClick={resetToDefault}
+            className="mt-4 text-sm text-gray-500 hover:text-primary transition-colors"
+          >
+            Reset to default
+          </button>
         </div>
       </div>
 
