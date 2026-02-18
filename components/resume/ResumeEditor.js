@@ -5,12 +5,7 @@ import { useIdentity } from '../../context/IdentityContext'
 import { templates, getSectionOrder } from '../templates/TemplateData'
 import { GripVertical, Plus, Trash2, Save } from 'lucide-react'
 import { PDFDownloadLink } from '@react-pdf/renderer'
-import dynamic from 'next/dynamic'
-
-const ResumePDF = dynamic(
-  () => import('./ResumePDF'),
-  { ssr: false }
-)
+import ResumePDF from './ResumePDF'
 
 export default function ResumeEditor({ templateId = 'modern-professional' }) {
   const { identity } = useIdentity()
