@@ -1,20 +1,14 @@
 'use client'
 
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer'
+import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer'
 
 console.log('ResumePDF component loaded')
-
-// Register fonts (optional but recommended)
-Font.register({
-  family: 'Inter',
-  src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2'
-})
 
 const styles = StyleSheet.create({
   page: {
     padding: 40,
     backgroundColor: '#ffffff',
-    fontFamily: 'Inter'
+    fontFamily: 'Helvetica' // Built-in font
   },
   header: {
     textAlign: 'center',
@@ -23,19 +17,22 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 4
+    marginBottom: 4,
+    fontFamily: 'Helvetica-Bold'
   },
   title: {
     fontSize: 14,
     color: '#4b5563',
-    marginBottom: 8
+    marginBottom: 8,
+    fontFamily: 'Helvetica'
   },
   contact: {
     fontSize: 10,
     color: '#6b7280',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8
+    gap: 8,
+    fontFamily: 'Helvetica'
   },
   sectionTitle: {
     fontSize: 14,
@@ -43,7 +40,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
-    paddingBottom: 4
+    paddingBottom: 4,
+    fontFamily: 'Helvetica-Bold'
   },
   experienceItem: {
     marginBottom: 12
@@ -55,36 +53,43 @@ const styles = StyleSheet.create({
   },
   role: {
     fontSize: 12,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold'
   },
   company: {
     fontSize: 11,
     color: '#4b5563',
-    marginBottom: 2
+    marginBottom: 2,
+    fontFamily: 'Helvetica'
   },
   years: {
     fontSize: 10,
-    color: '#6b7280'
+    color: '#6b7280',
+    fontFamily: 'Helvetica'
   },
   description: {
     fontSize: 10,
     color: '#4b5563',
-    lineHeight: 1.5
+    lineHeight: 1.5,
+    fontFamily: 'Helvetica'
   },
   educationItem: {
     marginBottom: 8
   },
   school: {
     fontSize: 12,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold'
   },
   degree: {
     fontSize: 11,
-    color: '#4b5563'
+    color: '#4b5563',
+    fontFamily: 'Helvetica'
   },
   year: {
     fontSize: 10,
-    color: '#6b7280'
+    color: '#6b7280',
+    fontFamily: 'Helvetica'
   },
   skills: {
     flexDirection: 'row',
@@ -95,13 +100,15 @@ const styles = StyleSheet.create({
     fontSize: 10,
     backgroundColor: '#f3f4f6',
     padding: '4 8',
-    borderRadius: 4
+    borderRadius: 4,
+    fontFamily: 'Helvetica'
   },
   summary: {
     fontSize: 11,
     color: '#4b5563',
     lineHeight: 1.5,
-    marginBottom: 12
+    marginBottom: 12,
+    fontFamily: 'Helvetica'
   },
   watermark: {
     position: 'absolute',
@@ -110,7 +117,8 @@ const styles = StyleSheet.create({
     fontSize: 40,
     color: '#f0f0f0',
     transform: 'rotate(-45deg)',
-    opacity: 0.3
+    opacity: 0.3,
+    fontFamily: 'Helvetica-Bold'
   }
 })
 
