@@ -7,6 +7,8 @@ import { GripVertical, Plus, Trash2 } from 'lucide-react'
 
 export default function ResumeEditor({ templateId = 'modern-professional' }) {
   const { identity } = useIdentity()
+  const [saveStatus, setSaveStatus] = useState('saved')
+  const [lastSaved, setLastSaved] = useState(null)
   const [resumeData, setResumeData] = useState({
     personal: {
       name: 'John Doe',
@@ -32,10 +34,42 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
     templates.find(t => t.id === templateId) || templates[0]
   )
 
+  // Load saved data from localStorage
+  useEffect(() => {
+    const savedData = localStorage.getItem(`resume-${templateId}`)
+    if (savedData) {
+      try {
+        setResumeData(JSON.parse(savedData))
+      } catch (e) {
+        console.error('Failed to load saved resume', e)
+      }
+    }
+  }, [templateId])
+
   useEffect(() => {
     const template = templates.find(t => t.id === templateId) || templates[0]
     setSelectedTemplate(template)
   }, [templateId])
+
+  // Autosave to localStorage
+  useEffect(() => {
+    if (!resumeData) return
+    
+    setSaveStatus('saving')
+    
+    const timeout = setTimeout(() => {
+      try {
+        localStorage.setItem(`resume-${templateId}`, JSON.stringify(resumeData))
+        setSaveStatus('saved')
+        setLastSaved(new Date())
+      } catch (e) {
+        console.error('Failed to save resume', e)
+        setSaveStatus('error')
+      }
+    }, 500)
+    
+    return () => clearTimeout(timeout)
+  }, [resumeData, templateId])
 
   const sectionOrder = getSectionOrder(templateId, identity)
 
@@ -54,7 +88,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
     e.preventDefault()
     
     if (!draggedItem) return
-    if (draggedItem.section !== targetSection) return // Can't drag across sections yet
+    if (draggedItem.section !== targetSection) return
 
     const newData = { ...resumeData }
     const items = [...newData[draggedItem.section]]
@@ -344,7 +378,29 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
       {/* Left Panel - Editor */}
       <div className="lg:w-1/2 p-6 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold mb-6 text-dark dark:text-light">Edit Your Resume</h2>
+          
+          {/* Header with save indicator */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-dark dark:text-light">Edit Your Resume</h2>
+            <div className="flex items-center gap-2">
+              {saveStatus === 'saving' && (
+                <span className="text-sm text-gray-500 flex items-center gap-1">
+                  <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                  Saving...
+                </span>
+              )}
+              {saveStatus === 'saved' && lastSaved && (
+                <span className="text-sm text-green-500">
+                  ✓ Saved {lastSaved.toLocaleTimeString()}
+                </span>
+              )}
+              {saveStatus === 'error' && (
+                <span className="text-sm text-red-500">
+                  ⚠ Save failed
+                </span>
+              )}
+            </div>
+          </div>
           
           {/* Personal Info */}
           <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
