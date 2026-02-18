@@ -3,13 +3,16 @@
 import { useState, useEffect } from 'react'
 import { useIdentity } from '../../context/IdentityContext'
 import { templates, getSectionOrder } from '../templates/TemplateData'
-import { GripVertical, Plus, Trash2, Save } from 'lucide-react'
+import { GripVertical, Plus, Trash2, Save, Settings } from 'lucide-react'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import ResumePDF from './ResumePDF'
 
 export default function ResumeEditor({ templateId = 'modern-professional' }) {
   const { identity } = useIdentity()
   const [isPro] = useState(false) // Will be replaced with real plan check later
+  const [showCustomSectionModal, setShowCustomSectionModal] = useState(false)
+  const [newSectionName, setNewSectionName] = useState('')
+  const [newSectionContent, setNewSectionContent] = useState('')
   
   // Load from localStorage or use defaults
   const loadSavedData = () => {
@@ -33,7 +36,8 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
       education: [
         { id: 'edu1', school: 'University of Mumbai', degree: 'B.Tech Computer Science', year: '2020', grade: '8.9 CGPA' }
       ],
-      skills: ['JavaScript', 'React', 'Node.js', 'Python', 'UI/UX']
+      skills: ['JavaScript', 'React', 'Node.js', 'Python', 'UI/UX'],
+      customSections: [] // New array for custom sections
     }
   }
 
@@ -133,9 +137,33 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
     })
   }
 
+  const addCustomSection = () => {
+    if (!newSectionName.trim()) return
+    
+    const newSection = {
+      id: `custom${Date.now()}`,
+      title: newSectionName,
+      content: newSectionContent || 'Add your content here...',
+      type: 'custom'
+    }
+    
+    setResumeData({
+      ...resumeData,
+      customSections: [...resumeData.customSections, newSection]
+    })
+    
+    setNewSectionName('')
+    setNewSectionContent('')
+    setShowCustomSectionModal(false)
+  }
+
   const removeItem = (section, index) => {
     const newData = { ...resumeData }
-    newData[section] = newData[section].filter((_, i) => i !== index)
+    if (section === 'customSections') {
+      newData.customSections = newData.customSections.filter((_, i) => i !== index)
+    } else {
+      newData[section] = newData[section].filter((_, i) => i !== index)
+    }
     setResumeData(newData)
   }
 
@@ -359,9 +387,27 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
         )
       
       default:
+        // Check if it's a custom section
+        if (sectionType.startsWith('custom-')) {
+          const customSection = resumeData.customSections.find(s => s.id === sectionType)
+          if (!customSection) return null
+          
+          return (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">{customSection.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400">{customSection.content}</p>
+            </div>
+          )
+        }
         return null
     }
   }
+
+  // Combine standard and custom sections for display
+  const allSections = [
+    ...sectionOrder,
+    ...resumeData.customSections.map(s => s.id)
+  ]
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
@@ -413,6 +459,13 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
                 className="col-span-2 md:col-span-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
                 placeholder="Phone"
               />
+              <input 
+                type="text"
+                value={resumeData.personal.location}
+                onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, location: e.target.value}})}
+                className="col-span-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                placeholder="Location"
+              />
             </div>
           </div>
 
@@ -443,6 +496,55 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               Drag sections with <GripVertical className="inline w-3 h-3" /> to reorder
             </p>
           </div>
+
+          {/* Add Custom Section Button */}
+          <button
+            onClick={() => setShowCustomSectionModal(true)}
+            className="mb-4 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Add Custom Section
+          </button>
+
+          {/* Custom Sections Editor */}
+          {resumeData.customSections.length > 0 && (
+            <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h3 className="font-semibold mb-4 text-dark dark:text-light">Custom Sections</h3>
+              {resumeData.customSections.map((section, idx) => (
+                <div key={section.id} className="mb-4 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <input
+                      type="text"
+                      value={section.title}
+                      onChange={(e) => {
+                        const newData = { ...resumeData }
+                        newData.customSections[idx].title = e.target.value
+                        setResumeData(newData)
+                      }}
+                      className="font-medium bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none"
+                      placeholder="Section Title"
+                    />
+                    <button 
+                      onClick={() => removeItem('customSections', idx)}
+                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <textarea
+                    value={section.content}
+                    onChange={(e) => {
+                      const newData = { ...resumeData }
+                      newData.customSections[idx].content = e.target.value
+                      setResumeData(newData)
+                    }}
+                    rows="3"
+                    className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700"
+                    placeholder="Section content..."
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Reset button */}
           <button
@@ -512,9 +614,9 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               </div>
             </div>
 
-            {/* Dynamic Sections based on identity */}
+            {/* Dynamic Sections based on identity + custom sections */}
             <div className="space-y-6">
-              {sectionOrder.map(sectionType => renderSection(sectionType))}
+              {allSections.map(sectionType => renderSection(sectionType))}
             </div>
 
             {/* Template-specific styling */}
@@ -529,6 +631,58 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
           </div>
         </div>
       </div>
+
+      {/* Custom Section Modal */}
+      {showCustomSectionModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md p-6">
+            <h3 className="text-xl font-bold mb-4 text-dark dark:text-light">Add Custom Section</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Section Title
+                </label>
+                <input
+                  type="text"
+                  value={newSectionName}
+                  onChange={(e) => setNewSectionName(e.target.value)}
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                  placeholder="e.g., Proficiencies, References, Certifications"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Content (optional)
+                </label>
+                <textarea
+                  value={newSectionContent}
+                  onChange={(e) => setNewSectionContent(e.target.value)}
+                  rows="4"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                  placeholder="Add your content here..."
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowCustomSectionModal(false)}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={addCustomSection}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Add Section
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
