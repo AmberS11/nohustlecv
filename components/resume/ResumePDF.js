@@ -2,6 +2,8 @@
 
 import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer'
 
+console.log('ResumePDF component loaded')
+
 // Register fonts (optional but recommended)
 Font.register({
   family: 'Inter',
@@ -113,6 +115,10 @@ const styles = StyleSheet.create({
 })
 
 export default function ResumePDF({ data, templateId, isWatermarked = false }) {
+  console.log('ResumePDF received data:', data)
+  console.log('Template ID:', templateId)
+  console.log('Watermarked:', isWatermarked)
+
   const sectionOrder = {
     'modern-professional': ['summary', 'experience', 'education', 'skills'],
     'creative-edge': ['summary', 'skills', 'experience', 'education'],
