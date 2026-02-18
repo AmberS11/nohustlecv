@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useIdentity } from '../../context/IdentityContext'
 import { templates, getSectionOrder } from '../templates/TemplateData'
+import { GripVertical, Plus, Trash2 } from 'lucide-react'
 
 export default function ResumeEditor({ templateId = 'modern-professional' }) {
   const { identity } = useIdentity()
@@ -16,15 +17,17 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
     },
     summary: 'Experienced software engineer with a passion for building beautiful products.',
     experience: [
-      { id: 1, company: 'Tech Corp', role: 'Senior Developer', years: '2022-Present', description: 'Led team of 5 developers...' },
-      { id: 2, company: 'Startup Inc', role: 'Developer', years: '2020-2022', description: 'Built mobile apps...' }
+      { id: 'exp1', company: 'Tech Corp', role: 'Senior Developer', years: '2022-Present', description: 'Led team of 5 developers building cloud infrastructure.' },
+      { id: 'exp2', company: 'Startup Inc', role: 'Developer', years: '2020-2022', description: 'Built mobile apps using React Native.' }
     ],
     education: [
-      { id: 1, school: 'University of Mumbai', degree: 'B.Tech Computer Science', year: '2020', grade: '8.9 CGPA' }
+      { id: 'edu1', school: 'University of Mumbai', degree: 'B.Tech Computer Science', year: '2020', grade: '8.9 CGPA' }
     ],
     skills: ['JavaScript', 'React', 'Node.js', 'Python', 'UI/UX']
   })
 
+  const [draggedItem, setDraggedItem] = useState(null)
+  const [dragOverItem, setDragOverItem] = useState(null)
   const [selectedTemplate, setSelectedTemplate] = useState(
     templates.find(t => t.id === templateId) || templates[0]
   )
@@ -35,6 +38,81 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
   }, [templateId])
 
   const sectionOrder = getSectionOrder(templateId, identity)
+
+  // Drag handlers
+  const handleDragStart = (e, section, index) => {
+    setDraggedItem({ section, index })
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e, section, index) => {
+    e.preventDefault()
+    setDragOverItem({ section, index })
+  }
+
+  const handleDrop = (e, targetSection, targetIndex) => {
+    e.preventDefault()
+    
+    if (!draggedItem) return
+    if (draggedItem.section !== targetSection) return // Can't drag across sections yet
+
+    const newData = { ...resumeData }
+    const items = [...newData[draggedItem.section]]
+    const [removed] = items.splice(draggedItem.index, 1)
+    items.splice(targetIndex, 0, removed)
+    
+    newData[draggedItem.section] = items
+    setResumeData(newData)
+    setDraggedItem(null)
+    setDragOverItem(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedItem(null)
+    setDragOverItem(null)
+  }
+
+  // Add/remove handlers
+  const addExperience = () => {
+    const newExp = {
+      id: `exp${Date.now()}`,
+      company: 'New Company',
+      role: 'New Role',
+      years: '2024-Present',
+      description: 'Add description here...'
+    }
+    setResumeData({
+      ...resumeData,
+      experience: [...resumeData.experience, newExp]
+    })
+  }
+
+  const addEducation = () => {
+    const newEdu = {
+      id: `edu${Date.now()}`,
+      school: 'New School',
+      degree: 'New Degree',
+      year: '2024',
+      grade: 'Grade'
+    }
+    setResumeData({
+      ...resumeData,
+      education: [...resumeData.education, newEdu]
+    })
+  }
+
+  const addSkill = () => {
+    setResumeData({
+      ...resumeData,
+      skills: [...resumeData.skills, 'New Skill']
+    })
+  }
+
+  const removeItem = (section, index) => {
+    const newData = { ...resumeData }
+    newData[section] = newData[section].filter((_, i) => i !== index)
+    setResumeData(newData)
+  }
 
   // Render section based on type
   const renderSection = (sectionType) => {
@@ -51,18 +129,89 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
         return (
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">Experience</h3>
-            {resumeData.experience.map(exp => (
-              <div key={exp.id} className="mb-4">
+            {resumeData.experience.map((exp, idx) => (
+              <div 
+                key={exp.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, 'experience', idx)}
+                onDragOver={(e) => handleDragOver(e, 'experience', idx)}
+                onDrop={(e) => handleDrop(e, 'experience', idx)}
+                onDragEnd={handleDragEnd}
+                className={`mb-4 p-3 border rounded-lg cursor-move transition-all ${
+                  draggedItem?.section === 'experience' && draggedItem?.index === idx 
+                    ? 'opacity-50 border-primary' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'
+                } ${
+                  dragOverItem?.section === 'experience' && dragOverItem?.index === idx
+                    ? 'border-2 border-primary'
+                    : ''
+                }`}
+              >
                 <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100">{exp.role}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{exp.company}</p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="w-4 h-4 text-gray-400" />
+                      <div className="flex-1">
+                        <div className="flex justify-between">
+                          <input
+                            type="text"
+                            value={exp.role}
+                            onChange={(e) => {
+                              const newData = { ...resumeData }
+                              newData.experience[idx].role = e.target.value
+                              setResumeData(newData)
+                            }}
+                            className="font-medium bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none"
+                          />
+                          <input
+                            type="text"
+                            value={exp.years}
+                            onChange={(e) => {
+                              const newData = { ...resumeData }
+                              newData.experience[idx].years = e.target.value
+                              setResumeData(newData)
+                            }}
+                            className="text-sm text-gray-500 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none w-32 text-right"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={exp.company}
+                          onChange={(e) => {
+                            const newData = { ...resumeData }
+                            newData.experience[idx].company = e.target.value
+                            setResumeData(newData)
+                          }}
+                          className="text-sm text-gray-600 dark:text-gray-400 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none w-full"
+                        />
+                      </div>
+                    </div>
+                    <textarea
+                      value={exp.description}
+                      onChange={(e) => {
+                        const newData = { ...resumeData }
+                        newData.experience[idx].description = e.target.value
+                        setResumeData(newData)
+                      }}
+                      className="mt-2 w-full text-sm bg-transparent border border-gray-200 dark:border-gray-700 rounded p-2 focus:border-primary outline-none"
+                      rows="2"
+                    />
                   </div>
-                  <span className="text-sm text-gray-500 dark:text-gray-500">{exp.years}</span>
+                  <button 
+                    onClick={() => removeItem('experience', idx)}
+                    className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{exp.description}</p>
               </div>
             ))}
+            <button
+              onClick={addExperience}
+              className="mt-2 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Add Experience
+            </button>
           </div>
         )
       
@@ -70,15 +219,79 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
         return (
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">Education</h3>
-            {resumeData.education.map(edu => (
-              <div key={edu.id} className="mb-3">
-                <div className="flex justify-between">
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100">{edu.school}</h4>
-                  <span className="text-sm text-gray-500 dark:text-gray-500">{edu.year}</span>
+            {resumeData.education.map((edu, idx) => (
+              <div 
+                key={edu.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, 'education', idx)}
+                onDragOver={(e) => handleDragOver(e, 'education', idx)}
+                onDrop={(e) => handleDrop(e, 'education', idx)}
+                onDragEnd={handleDragEnd}
+                className={`mb-4 p-3 border rounded-lg cursor-move transition-all ${
+                  draggedItem?.section === 'education' && draggedItem?.index === idx 
+                    ? 'opacity-50 border-primary' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'
+                } ${
+                  dragOverItem?.section === 'education' && dragOverItem?.index === idx
+                    ? 'border-2 border-primary'
+                    : ''
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="w-4 h-4 text-gray-400" />
+                      <div className="flex-1">
+                        <div className="flex justify-between">
+                          <input
+                            type="text"
+                            value={edu.school}
+                            onChange={(e) => {
+                              const newData = { ...resumeData }
+                              newData.education[idx].school = e.target.value
+                              setResumeData(newData)
+                            }}
+                            className="font-medium bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none"
+                          />
+                          <input
+                            type="text"
+                            value={edu.year}
+                            onChange={(e) => {
+                              const newData = { ...resumeData }
+                              newData.education[idx].year = e.target.value
+                              setResumeData(newData)
+                            }}
+                            className="text-sm text-gray-500 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none w-20 text-right"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={edu.degree}
+                          onChange={(e) => {
+                            const newData = { ...resumeData }
+                            newData.education[idx].degree = e.target.value
+                            setResumeData(newData)
+                          }}
+                          className="text-sm text-gray-600 dark:text-gray-400 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => removeItem('education', idx)}
+                    className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{edu.degree} • {edu.grade}</p>
               </div>
             ))}
+            <button
+              onClick={addEducation}
+              className="mt-2 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Add Education
+            </button>
           </div>
         )
       
@@ -87,12 +300,36 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">Skills</h3>
             <div className="flex flex-wrap gap-2">
-              {resumeData.skills.map((skill, i) => (
-                <span key={i} className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm">
-                  {skill}
-                </span>
+              {resumeData.skills.map((skill, idx) => (
+                <div key={idx} className="relative group">
+                  <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center gap-1">
+                    <GripVertical className="w-3 h-3 text-gray-400 cursor-move" />
+                    <input
+                      type="text"
+                      value={skill}
+                      onChange={(e) => {
+                        const newData = { ...resumeData }
+                        newData.skills[idx] = e.target.value
+                        setResumeData(newData)
+                      }}
+                      className="bg-transparent border-none outline-none w-20 text-center"
+                    />
+                    <button 
+                      onClick={() => removeItem('skills', idx)}
+                      className="text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </span>
+                </div>
               ))}
             </div>
+            <button
+              onClick={addSkill}
+              className="mt-2 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Add Skill
+            </button>
           </div>
         )
       
@@ -167,6 +404,9 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
                 </span>
               ))}
             </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Drag sections with <GripVertical className="inline w-3 h-3" /> to reorder
+            </p>
           </div>
         </div>
       </div>
@@ -182,7 +422,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
           </div>
           
           {/* Resume Preview Card */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700 relative">
             
             {/* Header */}
             <div className="text-center mb-8">
@@ -206,7 +446,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               {sectionOrder.map(sectionType => renderSection(sectionType))}
             </div>
 
-            {/* Template-specific styling (simulated) */}
+            {/* Template-specific styling */}
             {selectedTemplate.id === 'creative-edge' && (
               <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-purple-500 to-pink-500" />
             )}
