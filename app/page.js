@@ -3,33 +3,13 @@
 import Header from '../components/Header'
 import Hero from '../components/Hero'
 import Features from '../components/Features'
-import Resume3DPreview from '../components/Resume3DPreview'
 import Footer from '../components/Footer'
 
 export default function Home() {
   return (
     <main className="min-h-screen">
       <Header />
-      <Hero />
-      
-      {/* 3D Resume Preview Section */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-900/50">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Experience the{' '}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Difference
-              </span>
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Move your mouse over the resume below to feel the 3D depth and premium interactions.
-            </p>
-          </div>
-          <Resume3DPreview />
-        </div>
-      </section>
-
+      <Hero />  {/* Hero now contains the 3D preview */}
       <Features />
       <Footer />
 
