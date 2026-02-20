@@ -20,7 +20,11 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
   const loadSavedData = () => {
     const saved = localStorage.getItem('resumeData')
     if (saved) {
-      return JSON.parse(saved)
+      try {
+        return JSON.parse(saved)
+      } catch (e) {
+        console.error('Failed to parse saved data', e)
+      }
     }
     return {
       personal: {
@@ -29,7 +33,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
         email: 'john@example.com',
         phone: '+91 98765 43210',
         location: 'Mumbai, India',
-        photo: null // Add photo field
+        photo: null
       },
       summary: 'Experienced software engineer with a passion for building beautiful products.',
       experience: [
@@ -61,7 +65,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
       setHistory(newHistory)
       setHistoryIndex(newHistory.length - 1)
     }
-  }, [resumeData])
+  }, [resumeData, history, historyIndex])
 
   // Autosave whenever data changes
   useEffect(() => {
@@ -114,8 +118,10 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
     if (index !== null) {
       // Toggle individual item (experience, education)
       const newData = { ...resumeData }
-      newData[sectionType][index].visible = !newData[sectionType][index].visible
-      setResumeData(newData)
+      if (newData[sectionType] && newData[sectionType][index]) {
+        newData[sectionType][index].visible = !newData[sectionType][index].visible
+        setResumeData(newData)
+      }
     } else {
       // Toggle entire section type
       setHiddenSections(prev => ({
@@ -217,14 +223,28 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
 
   const removeItem = (section, index) => {
     const newData = { ...resumeData }
-    newData[section] = newData[section].filter((_, i) => i !== index)
-    setResumeData(newData)
+    if (newData[section]) {
+      newData[section] = newData[section].filter((_, i) => i !== index)
+      setResumeData(newData)
+    }
   }
 
   const removeCustomSection = (index) => {
     const newData = { ...resumeData }
-    newData.customSections = newData.customSections.filter((_, i) => i !== index)
-    setResumeData(newData)
+    if (newData.customSections) {
+      newData.customSections = newData.customSections.filter((_, i) => i !== index)
+      setResumeData(newData)
+    }
+  }
+
+  // Calculate total content weight for page break
+  const calculateContentWeight = () => {
+    return (
+      (resumeData.experience?.length || 0) * 2 +
+      (resumeData.education?.length || 0) * 1.5 +
+      (resumeData.customSections?.length || 0) * 2 +
+      ((resumeData.skills?.length || 0) > 5 ? 1 : 0)
+    )
   }
 
   // Render section based on type
@@ -234,12 +254,13 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
     switch(sectionType) {
       case 'summary':
         return (
-          <div className="mb-6">
+          <div className="mb-6" key="summary">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Summary</h3>
               <button
                 onClick={() => toggleSectionVisibility('summary')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                title="Hide section"
               >
                 <EyeOff className="w-4 h-4" />
               </button>
@@ -250,17 +271,18 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
       
       case 'experience':
         return (
-          <div className="mb-6">
+          <div className="mb-6" key="experience">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Experience</h3>
               <button
                 onClick={() => toggleSectionVisibility('experience')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                title="Hide section"
               >
                 <EyeOff className="w-4 h-4" />
               </button>
             </div>
-            {resumeData.experience.filter(exp => exp.visible).map((exp, idx) => (
+            {resumeData.experience?.filter(exp => exp.visible !== false).map((exp, idx) => (
               <div 
                 key={exp.id}
                 draggable
@@ -357,17 +379,18 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
       
       case 'education':
         return (
-          <div className="mb-6">
+          <div className="mb-6" key="education">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Education</h3>
               <button
                 onClick={() => toggleSectionVisibility('education')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                title="Hide section"
               >
                 <EyeOff className="w-4 h-4" />
               </button>
             </div>
-            {resumeData.education.filter(edu => edu.visible).map((edu, idx) => (
+            {resumeData.education?.filter(edu => edu.visible !== false).map((edu, idx) => (
               <div 
                 key={edu.id}
                 draggable
@@ -417,430 +440,439 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
                           value={edu.degree}
                           onChange={(e) => {
                             const newData = { ...resumeData }
-                              newData.education[idx].degree = e.target.value
-                              setResumeData(newData)
-                            }}
-                            className="text-sm text-gray-600 dark:text-gray-400 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none w-full"
-                          />
-                        </div>
+                            newData.education[idx].degree = e.target.value
+                            setResumeData(newData)
+                          }}
+                          className="text-sm text-gray-600 dark:text-gray-400 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none w-full"
+                        />
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 mt-2">
-                      <button
-                        onClick={() => toggleSectionVisibility('education', idx)}
-                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                        title={edu.visible ? 'Hide' : 'Show'}
-                      >
-                        {edu.visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                      <button 
-                        onClick={() => removeItem('education', idx)}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
                   </div>
-                </div>
-              ))}
-              <button
-                onClick={addEducation}
-                className="mt-2 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-              >
-                <Plus className="w-4 h-4" /> Add Education
-              </button>
-            </div>
-          )
-        
-        case 'skills':
-          return (
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Skills</h3>
-                <button
-                  onClick={() => toggleSectionVisibility('skills')}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <EyeOff className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {resumeData.skills.map((skill, idx) => (
-                  <div key={idx} className="relative group">
-                    <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center gap-1">
-                      <GripVertical className="w-3 h-3 text-gray-400 cursor-move" />
-                      <input
-                        type="text"
-                        value={skill}
-                        onChange={(e) => {
-                          const newData = { ...resumeData }
-                          newData.skills[idx] = e.target.value
-                          setResumeData(newData)
-                        }}
-                        className="bg-transparent border-none outline-none w-20 text-center"
-                      />
-                      <button 
-                        onClick={() => removeItem('skills', idx)}
-                        className="text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={addSkill}
-                className="mt-2 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-              >
-                <Plus className="w-4 h-4" /> Add Skill
-              </button>
-            </div>
-          )
-        
-        default:
-          return null
-      }
-    }
-
-    return (
-      <div className="flex flex-col lg:flex-row min-h-screen">
-        
-        {/* Left Panel - Editor */}
-        <div className="lg:w-1/2 p-6 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
-          <div className="max-w-2xl mx-auto">
-            
-            {/* Header with save indicator and undo/redo */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-dark dark:text-light">Edit Your Resume</h2>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={undo}
-                  disabled={historyIndex <= 0}
-                  className={`p-2 rounded-lg ${
-                    historyIndex <= 0 
-                      ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' 
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                  title="Undo"
-                >
-                  <Undo2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={redo}
-                  disabled={historyIndex >= history.length - 1}
-                  className={`p-2 rounded-lg ${
-                    historyIndex >= history.length - 1
-                      ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                  title="Redo"
-                >
-                  <Redo2 className="w-4 h-4" />
-                </button>
-                {lastSaved && (
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <Save className="w-3 h-3" />
-                    <span>Saved {lastSaved}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Personal Info with Photo Upload */}
-            <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <h3 className="font-semibold mb-4 text-dark dark:text-light">Personal Information</h3>
-              
-              {/* Photo Upload */}
-              <div className="flex items-center gap-4 mb-4">
-                <div className="relative">
-                  {resumeData.personal.photo ? (
-                    <img 
-                      src={resumeData.personal.photo} 
-                      alt="Profile"
-                      className="w-20 h-20 rounded-full object-cover border-2 border-primary"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500">
-                      <Upload className="w-6 h-6" />
-                    </div>
-                  )}
-                  <button
-                    onClick={() => fileInputRef.current.click()}
-                    className="absolute bottom-0 right-0 p-1 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
-                    title="Upload photo"
-                  >
-                    <Upload className="w-4 h-4" />
-                  </button>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handlePhotoUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Upload a professional photo (optional)
-                  </p>
-                  {resumeData.personal.photo && (
-                    <button
-                      onClick={() => {
-                        setResumeData({
-                          ...resumeData,
-                          personal: { ...resumeData.personal, photo: null }
-                        })
-                      }}
-                      className="text-xs text-red-500 hover:text-red-600 mt-1"
-                    >
-                      Remove photo
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <input 
-                  type="text"
-                  value={resumeData.personal.name}
-                  onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, name: e.target.value}})}
-                  className="col-span-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                  placeholder="Full Name"
-                />
-                <input 
-                  type="text"
-                  value={resumeData.personal.title}
-                  onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, title: e.target.value}})}
-                  className="col-span-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                  placeholder="Professional Title"
-                />
-                <input 
-                  type="email"
-                  value={resumeData.personal.email}
-                  onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, email: e.target.value}})}
-                  className="col-span-2 md:col-span-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                  placeholder="Email"
-                />
-                <input 
-                  type="tel"
-                  value={resumeData.personal.phone}
-                  onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, phone: e.target.value}})}
-                  className="col-span-2 md:col-span-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                  placeholder="Phone"
-                />
-                <input 
-                  type="text"
-                  value={resumeData.personal.location}
-                  onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, location: e.target.value}})}
-                  className="col-span-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                  placeholder="Location"
-                />
-              </div>
-            </div>
-
-            {/* Summary */}
-            <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <h3 className="font-semibold mb-4 text-dark dark:text-light">Professional Summary</h3>
-              <textarea
-                value={resumeData.summary}
-                onChange={(e) => setResumeData({...resumeData, summary: e.target.value})}
-                rows="3"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                placeholder="Write a brief summary..."
-              />
-            </div>
-
-            {/* Section order indicator */}
-            <div className="mb-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
-              <p className="text-sm text-dark dark:text-light">
-                <span className="font-medium">Identity-based order:</span> {' '}
-                {sectionOrder.map((s, i) => (
-                  <span key={s}>
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                    {i < sectionOrder.length - 1 ? ' → ' : ''}
-                  </span>
-                ))}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Drag sections with <GripVertical className="inline w-3 h-3" /> to reorder
-              </p>
-            </div>
-
-            {/* Dynamic Sections */}
-            {sectionOrder.map(sectionType => renderSection(sectionType))}
-
-            {/* Custom Sections */}
-            {resumeData.customSections?.map((section, idx) => (
-              <div key={section.id} className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                <div className="flex justify-between items-center mb-3">
-                  <input
-                    type="text"
-                    value={section.title}
-                    onChange={(e) => {
-                      const newData = { ...resumeData }
-                      newData.customSections[idx].title = e.target.value
-                      setResumeData(newData)
-                    }}
-                    className="font-semibold bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none"
-                    placeholder="Section Title"
-                  />
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => {
-                        const newData = { ...resumeData }
-                        newData.customSections[idx].visible = !newData.customSections[idx].visible
-                        setResumeData(newData)
-                      }}
+                      onClick={() => toggleSectionVisibility('education', idx)}
                       className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      title={edu.visible ? 'Hide' : 'Show'}
                     >
-                      {section.visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {edu.visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
-                    <button
-                      onClick={() => removeCustomSection(idx)}
+                    <button 
+                      onClick={() => removeItem('education', idx)}
                       className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-                {section.visible && (
-                  <textarea
-                    value={section.content}
-                    onChange={(e) => {
-                      const newData = { ...resumeData }
-                      newData.customSections[idx].content = e.target.value
-                      setResumeData(newData)
-                    }}
-                    rows="3"
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                    placeholder="Add your content here..."
-                  />
-                )}
               </div>
             ))}
-
-            {/* Add Custom Section Button */}
             <button
-              onClick={addCustomSection}
-              className="mb-6 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+              onClick={addEducation}
+              className="mt-2 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
             >
-              <Plus className="w-4 h-4" /> Add Custom Section
+              <Plus className="w-4 h-4" /> Add Education
             </button>
-
-            {/* Reset button */}
-            <button
-              onClick={resetToDefault}
-              className="mt-4 text-sm text-gray-500 hover:text-primary transition-colors"
-            >
-              Reset to default
-            </button>
-
-            {/* Export PDF */}
-            <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
-              <h3 className="font-semibold mb-3 text-dark dark:text-light">Export Resume</h3>
-              <PDFDownloadLink
-                document={<ResumePDF data={resumeData} templateId={templateId} isWatermarked={!isPro} />}
-                fileName={`${resumeData.personal.name.replace(/\s+/g, '_')}_Resume.pdf`}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          </div>
+        )
+      
+      case 'skills':
+        return (
+          <div className="mb-6" key="skills">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Skills</h3>
+              <button
+                onClick={() => toggleSectionVisibility('skills')}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                title="Hide section"
               >
-                {({ loading }) => (
-                  <>
-                    {loading ? 'Generating PDF...' : 'Download PDF'}
-                    {!isPro && <span className="text-xs ml-2 opacity-80">(Watermarked)</span>}
-                  </>
-                )}
-              </PDFDownloadLink>
-              {!isPro && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Free version includes watermark. Upgrade to PRO for clean exports.
-                </p>
+                <EyeOff className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {resumeData.skills?.map((skill, idx) => (
+                <div key={idx} className="relative group">
+                  <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center gap-1">
+                    <GripVertical className="w-3 h-3 text-gray-400 cursor-move" />
+                    <input
+                      type="text"
+                      value={skill}
+                      onChange={(e) => {
+                        const newData = { ...resumeData }
+                        newData.skills[idx] = e.target.value
+                        setResumeData(newData)
+                      }}
+                      className="bg-transparent border-none outline-none w-20 text-center"
+                    />
+                    <button 
+                      onClick={() => removeItem('skills', idx)}
+                      className="text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={addSkill}
+              className="mt-2 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Add Skill
+            </button>
+          </div>
+        )
+      
+      default:
+        return null
+    }
+  }
+
+  const totalContentWeight = calculateContentWeight()
+
+  return (
+    <div className="flex flex-col lg:flex-row min-h-screen">
+      
+      {/* Left Panel - Editor */}
+      <div className="lg:w-1/2 p-6 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
+        <div className="max-w-2xl mx-auto">
+          
+          {/* Header with save indicator and undo/redo */}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-dark dark:text-light">Edit Your Resume</h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={undo}
+                disabled={historyIndex <= 0}
+                className={`p-2 rounded-lg ${
+                  historyIndex <= 0 
+                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+                title="Undo"
+              >
+                <Undo2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={redo}
+                disabled={historyIndex >= history.length - 1}
+                className={`p-2 rounded-lg ${
+                  historyIndex >= history.length - 1
+                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+                title="Redo"
+              >
+                <Redo2 className="w-4 h-4" />
+              </button>
+              {lastSaved && (
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Save className="w-3 h-3" />
+                  <span>Saved {lastSaved}</span>
+                </div>
               )}
             </div>
           </div>
-        </div>
-
-        {/* Right Panel - Preview */}
-        <div className="lg:w-1/2 p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
-          <div className="max-w-2xl mx-auto">
-            <div className="mb-4 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-dark dark:text-light">Preview</h2>
-              <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
-                {selectedTemplate.name}
-              </span>
-            </div>
+          
+          {/* Personal Info with Photo Upload */}
+          <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <h3 className="font-semibold mb-4 text-dark dark:text-light">Personal Information</h3>
             
-            {/* Resume Preview Card */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700 relative min-h-[842px]">
-              
-              {/* Header with Photo */}
-              <div className="flex items-center gap-6 mb-8">
-                {resumeData.personal.photo && (
+            {/* Photo Upload */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="relative">
+                {resumeData.personal.photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img 
                     src={resumeData.personal.photo} 
                     alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover border-2 border-primary"
+                    className="w-20 h-20 rounded-full object-cover border-2 border-primary"
                   />
-                )}
-                <div className={resumeData.personal.photo ? 'flex-1' : 'w-full text-center'}>
-                  <h1 className="text-3xl font-bold text-dark dark:text-light">
-                    {resumeData.personal.name}
-                  </h1>
-                  <p className="text-lg text-gray-600 dark:text-gray-400 mt-1">
-                    {resumeData.personal.title}
-                  </p>
-                  <div className="flex justify-center gap-4 mt-3 text-sm text-gray-500 dark:text-gray-500 flex-wrap">
-                    <span>{resumeData.personal.email}</span>
-                    <span>•</span>
-                    <span>{resumeData.personal.phone}</span>
-                    <span>•</span>
-                    <span>{resumeData.personal.location}</span>
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500">
+                    <Upload className="w-6 h-6" />
                   </div>
+                )}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 p-1 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
+                  title="Upload photo"
+                >
+                  <Upload className="w-4 h-4" />
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handlePhotoUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Upload a professional photo (optional)
+                </p>
+                {resumeData.personal.photo && (
+                  <button
+                    onClick={() => {
+                      setResumeData({
+                        ...resumeData,
+                        personal: { ...resumeData.personal, photo: null }
+                      })
+                    }}
+                    className="text-xs text-red-500 hover:text-red-600 mt-1"
+                  >
+                    Remove photo
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <input 
+                type="text"
+                value={resumeData.personal.name}
+                onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, name: e.target.value}})}
+                className="col-span-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                placeholder="Full Name"
+              />
+              <input 
+                type="text"
+                value={resumeData.personal.title}
+                onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, title: e.target.value}})}
+                className="col-span-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                placeholder="Professional Title"
+              />
+              <input 
+                type="email"
+                value={resumeData.personal.email}
+                onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, email: e.target.value}})}
+                className="col-span-2 md:col-span-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                placeholder="Email"
+              />
+              <input 
+                type="tel"
+                value={resumeData.personal.phone}
+                onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, phone: e.target.value}})}
+                className="col-span-2 md:col-span-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                placeholder="Phone"
+              />
+              <input 
+                type="text"
+                value={resumeData.personal.location}
+                onChange={(e) => setResumeData({...resumeData, personal: {...resumeData.personal, location: e.target.value}})}
+                className="col-span-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                placeholder="Location"
+              />
+            </div>
+          </div>
+
+          {/* Summary */}
+          <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <h3 className="font-semibold mb-4 text-dark dark:text-light">Professional Summary</h3>
+            <textarea
+              value={resumeData.summary}
+              onChange={(e) => setResumeData({...resumeData, summary: e.target.value})}
+              rows="3"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+              placeholder="Write a brief summary..."
+            />
+          </div>
+
+          {/* Section order indicator */}
+          <div className="mb-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
+            <p className="text-sm text-dark dark:text-light">
+              <span className="font-medium">Identity-based order:</span> {' '}
+              {sectionOrder.map((s, i) => (
+                <span key={s}>
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                  {i < sectionOrder.length - 1 ? ' → ' : ''}
+                </span>
+              ))}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Drag sections with <GripVertical className="inline w-3 h-3" /> to reorder
+            </p>
+          </div>
+
+          {/* Dynamic Sections */}
+          {sectionOrder.map(sectionType => renderSection(sectionType))}
+
+          {/* Custom Sections */}
+          {resumeData.customSections?.map((section, idx) => (
+            <div key={section.id} className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <div className="flex justify-between items-center mb-3">
+                <input
+                  type="text"
+                  value={section.title}
+                  onChange={(e) => {
+                    const newData = { ...resumeData }
+                    newData.customSections[idx].title = e.target.value
+                    setResumeData(newData)
+                  }}
+                  className="font-semibold bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary outline-none"
+                  placeholder="Section Title"
+                />
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      const newData = { ...resumeData }
+                      newData.customSections[idx].visible = !newData.customSections[idx].visible
+                      setResumeData(newData)
+                    }}
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    {section.visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={() => removeCustomSection(idx)}
+                    className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
+              {section.visible && (
+                <textarea
+                  value={section.content}
+                  onChange={(e) => {
+                    const newData = { ...resumeData }
+                    newData.customSections[idx].content = e.target.value
+                    setResumeData(newData)
+                  }}
+                  rows="3"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                  placeholder="Add your content here..."
+                />
+              )}
+            </div>
+          ))}
 
-              {/* Dynamic Sections based on identity */}
-              <div className="space-y-6">
-                {sectionOrder.map(sectionType => {
-                  if (hiddenSections[sectionType]) return null
-                  return renderSection(sectionType)
-                })}
-                
-                {/* Custom Sections in Preview */}
-                {resumeData.customSections?.filter(s => s.visible).map(section => (
-                  <div key={section.id} className="mb-6">
-                    <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
-                      {section.title}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 whitespace-pre-line">
-                      {section.content}
-                    </p>
-                  </div>
-                ))}
+          {/* Add Custom Section Button */}
+          <button
+            onClick={addCustomSection}
+            className="mb-6 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Add Custom Section
+          </button>
+
+          {/* Reset button */}
+          <button
+            onClick={resetToDefault}
+            className="mt-4 text-sm text-gray-500 hover:text-primary transition-colors"
+          >
+            Reset to default
+          </button>
+
+          {/* Export PDF */}
+          <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
+            <h3 className="font-semibold mb-3 text-dark dark:text-light">Export Resume</h3>
+            <PDFDownloadLink
+              document={<ResumePDF data={resumeData} templateId={templateId} isWatermarked={!isPro} />}
+              fileName={`${resumeData.personal.name.replace(/\s+/g, '_')}_Resume.pdf`}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              {({ loading }) => (
+                <>
+                  {loading ? 'Generating PDF...' : 'Download PDF'}
+                  {!isPro && <span className="text-xs ml-2 opacity-80">(Watermarked)</span>}
+                </>
+              )}
+            </PDFDownloadLink>
+            {!isPro && (
+              <p className="text-xs text-gray-500 mt-2">
+                Free version includes watermark. Upgrade to PRO for clean exports.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel - Preview */}
+      <div className="lg:w-1/2 p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-4 flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-dark dark:text-light">Preview</h2>
+            <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+              {selectedTemplate.name}
+            </span>
+          </div>
+          
+          {/* Resume Preview Card */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700 relative min-h-[842px]">
+            
+            {/* Header with Photo */}
+            <div className="flex items-center gap-6 mb-8">
+              {resumeData.personal.photo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img 
+                  src={resumeData.personal.photo} 
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover border-2 border-primary"
+                />
+              )}
+              <div className={resumeData.personal.photo ? 'flex-1' : 'w-full text-center'}>
+                <h1 className="text-3xl font-bold text-dark dark:text-light">
+                  {resumeData.personal.name}
+                </h1>
+                <p className="text-lg text-gray-600 dark:text-gray-400 mt-1">
+                  {resumeData.personal.title}
+                </p>
+                <div className="flex justify-center gap-4 mt-3 text-sm text-gray-500 dark:text-gray-500 flex-wrap">
+                  <span>{resumeData.personal.email}</span>
+                  <span>•</span>
+                  <span>{resumeData.personal.phone}</span>
+                  <span>•</span>
+                  <span>{resumeData.personal.location}</span>
+                </div>
               </div>
+            </div>
 
-      {/* Page break indicator based on total content */}
-{(() => {
-  // Calculate total content "weight"
-  const totalItems = 
-    resumeData.experience.length * 2 + 
-    resumeData.education.length * 1.5 + 
-    (resumeData.customSections?.length || 0) * 2 +
-    (resumeData.skills.length > 5 ? 1 : 0)
-  
-  if (totalItems > 6) {
-    return (
-      <>
-        <div className="mt-8 pt-4 border-t-2 border-dashed border-gray-300 dark:border-gray-600 text-center text-sm text-gray-400">
-          Page 1 • Resume continues on next page
+            {/* Dynamic Sections based on identity */}
+            <div className="space-y-6">
+              {sectionOrder.map(sectionType => {
+                if (hiddenSections[sectionType]) return null
+                return renderSection(sectionType)
+              })}
+              
+              {/* Custom Sections in Preview */}
+              {resumeData.customSections?.filter(s => s.visible).map(section => (
+                <div key={section.id} className="mb-6">
+                  <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
+                    {section.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 whitespace-pre-line">
+                    {section.content}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Page break indicator based on total content */}
+            {totalContentWeight > 6 && (
+              <>
+                <div className="mt-8 pt-4 border-t-2 border-dashed border-gray-300 dark:border-gray-600 text-center text-sm text-gray-400">
+                  Page 1 • Resume continues on next page
+                </div>
+                <div className="mt-4 p-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 opacity-50">
+                  <p className="text-center text-sm text-gray-500">
+                    Page 2 preview (add more content to see full second page)
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* Template-specific styling */}
+            {selectedTemplate.id === 'creative-edge' && (
+              <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-purple-500 to-pink-500" />
+            )}
+            {selectedTemplate.id === 'minimal-elegance' && (
+              <div className="border-t-2 border-gray-300 dark:border-gray-600 pt-4 mt-4 text-center text-sm text-gray-500">
+                — Minimal Elegance —
+              </div>
+            )}
+          </div>
         </div>
-        <div className="mt-4 p-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 opacity-50">
-          <p className="text-center text-sm text-gray-500">
-            Page 2 preview (add more content to see full second page)
-          </p>
-        </div>
-      </>
-    )
-  }
-  return null
-})()}
+      </div>
+    </div>
+  )
+}
