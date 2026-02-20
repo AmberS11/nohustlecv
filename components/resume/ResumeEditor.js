@@ -260,9 +260,9 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               <button
                 onClick={() => toggleSectionVisibility('summary')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title="Hide section"
+                title={hiddenSections['summary'] ? 'Show section' : 'Hide section'}
               >
-                <EyeOff className="w-4 h-4" />
+                {hiddenSections['summary'] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </button>
             </div>
             <p className="text-gray-600 dark:text-gray-400">{resumeData.summary}</p>
@@ -277,9 +277,9 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               <button
                 onClick={() => toggleSectionVisibility('experience')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title="Hide section"
+                title={hiddenSections['experience'] ? 'Show section' : 'Hide section'}
               >
-                <EyeOff className="w-4 h-4" />
+                {hiddenSections['experience'] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </button>
             </div>
             {resumeData.experience?.filter(exp => exp.visible !== false).map((exp, idx) => (
@@ -385,9 +385,9 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               <button
                 onClick={() => toggleSectionVisibility('education')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title="Hide section"
+                title={hiddenSections['education'] ? 'Show section' : 'Hide section'}
               >
-                <EyeOff className="w-4 h-4" />
+                {hiddenSections['education'] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </button>
             </div>
             {resumeData.education?.filter(edu => edu.visible !== false).map((edu, idx) => (
@@ -483,9 +483,9 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               <button
                 onClick={() => toggleSectionVisibility('skills')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title="Hide section"
+                title={hiddenSections['skills'] ? 'Show section' : 'Hide section'}
               >
-                <EyeOff className="w-4 h-4" />
+                {hiddenSections['skills'] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -528,6 +528,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
   }
 
   const totalContentWeight = calculateContentWeight()
+  const hasHiddenSections = Object.keys(hiddenSections).filter(key => hiddenSections[key]).length > 0
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
@@ -694,6 +695,45 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
             </p>
           </div>
 
+          {/* Hidden Sections Manager */}
+          {hasHiddenSections && (
+            <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <div className="flex justify-between items-center">
+                <h4 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Hidden Sections</h4>
+                <button
+                  onClick={() => {
+                    const sections = Object.keys(hiddenSections).filter(key => hiddenSections[key])
+                    if (sections.length > 0) {
+                      const newHidden = { ...hiddenSections }
+                      sections.forEach(s => delete newHidden[s])
+                      setHiddenSections(newHidden)
+                    }
+                  }}
+                  className="text-xs px-2 py-1 bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 rounded hover:bg-yellow-300 dark:hover:bg-yellow-700"
+                >
+                  Unhide All
+                </button>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {Object.keys(hiddenSections).filter(key => hiddenSections[key]).map(section => (
+                  <button
+                    key={section}
+                    onClick={() => {
+                      setHiddenSections(prev => ({
+                        ...prev,
+                        [section]: false
+                      }))
+                    }}
+                    className="text-xs px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-1"
+                  >
+                    <Eye className="w-3 h-3" />
+                    {section.charAt(0).toUpperCase() + section.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Dynamic Sections */}
           {sectionOrder.map(sectionType => renderSection(sectionType))}
 
@@ -720,6 +760,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
                       setResumeData(newData)
                     }}
                     className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    title={section.visible ? 'Hide' : 'Show'}
                   >
                     {section.visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
