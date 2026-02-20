@@ -19,6 +19,7 @@ export default function Header() {
   { name: 'Pricing', href: '#' },
   { name: 'Campus Partnerships', href: '#' },
   { name: 'Cover Letter', href: '/cover-letter' },
+  { name: 'API Test', href: '/api-test' },
 ]
 
   return (
