@@ -59,8 +59,8 @@ export default function Header() {
                 className="bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-1 xl:px-2 py-1.5 text-xs xl:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary w-20 xl:w-24"
               >
                 <option value="student">Student</option>
-                <option value="professional">Pro</option>
-                <option value="career_switcher">Switch</option>
+                <option value="professional">Professional</option>
+                <option value="career_switcher">Career Switcher</option>
               </select>
             </div>
 
