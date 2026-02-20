@@ -819,32 +819,28 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
                 ))}
               </div>
 
-              {/* Page break indicator for multi-page (visual only) */}
-              {resumeData.experience.length > 2 && (
-                <div className="mt-8 pt-4 border-t-2 border-dashed border-gray-300 dark:border-gray-600 text-center text-sm text-gray-400">
-                  Page 1 • Continues on next page
-                </div>
-              )}
-
-              {/* Template-specific styling */}
-              {selectedTemplate.id === 'creative-edge' && (
-                <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-purple-500 to-pink-500" />
-              )}
-              {selectedTemplate.id === 'minimal-elegance' && (
-                <div className="border-t-2 border-gray-300 dark:border-gray-600 pt-4 mt-4 text-center text-sm text-gray-500">
-                  — Minimal Elegance —
-                </div>
-              )}
-            </div>
-
-            {/* Multi-page indicator (second page preview) */}
-            {resumeData.experience.length > 2 && (
-              <div className="mt-4 p-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 opacity-50">
-                <p className="text-center text-sm text-gray-500">Page 2 (Preview continues)</p>
-              </div>
-            )}
-          </div>
+      {/* Page break indicator based on total content */}
+{(() => {
+  // Calculate total content "weight"
+  const totalItems = 
+    resumeData.experience.length * 2 + 
+    resumeData.education.length * 1.5 + 
+    (resumeData.customSections?.length || 0) * 2 +
+    (resumeData.skills.length > 5 ? 1 : 0)
+  
+  if (totalItems > 6) {
+    return (
+      <>
+        <div className="mt-8 pt-4 border-t-2 border-dashed border-gray-300 dark:border-gray-600 text-center text-sm text-gray-400">
+          Page 1 • Resume continues on next page
         </div>
-      </div>
+        <div className="mt-4 p-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 opacity-50">
+          <p className="text-center text-sm text-gray-500">
+            Page 2 preview (add more content to see full second page)
+          </p>
+        </div>
+      </>
     )
   }
+  return null
+})()}
