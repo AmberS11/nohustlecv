@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles, CheckCircle } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Resume3DPreview from './Resume3DPreview'
 
 export default function Hero() {
   const [flippingText, setFlippingText] = useState(0)
@@ -49,17 +50,6 @@ export default function Hero() {
       y: 0, 
       opacity: 1,
       transition: { type: "spring", stiffness: 100 }
-    }
-  }
-
-  const floatingVariants = {
-    animate: {
-      y: [0, -10, 0],
-      transition: {
-        duration: 4,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
     }
   }
 
@@ -199,7 +189,7 @@ export default function Hero() {
         {/* Social proof with count-up animation */}
         <motion.div 
           variants={itemVariants}
-          className="flex flex-col md:flex-row items-center justify-center gap-8 text-gray-500 dark:text-gray-400"
+          className="flex flex-col md:flex-row items-center justify-center gap-8 text-gray-500 dark:text-gray-400 mb-20"
         >
           <motion.div 
             className="text-center"
@@ -251,56 +241,8 @@ export default function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* Animated resume preview */}
-        <motion.div 
-          className="mt-20 relative"
-          variants={itemVariants}
-          animate="animate"
-        >
-          <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl rounded-3xl" />
-          <motion.div 
-            className="relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 shadow-2xl max-w-4xl mx-auto"
-            variants={floatingVariants}
-            animate="animate"
-            whileHover={{ scale: 1.02 }}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <motion.div 
-                  className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg"
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 5, repeat: Infinity }}
-                />
-                <div>
-                  <div className="font-bold text-lg">Johnathan Rhodes</div>
-                  <div className="text-gray-500 text-sm">Senior Product Manager</div>
-                </div>
-              </div>
-              <motion.div 
-                className="text-sm px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                ATS Score: 92/100
-              </motion.div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[1, 2, 3].map((i) => (
-                <motion.div 
-                  key={i} 
-                  className="space-y-4"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.6 + i * 0.1 }}
-                >
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </motion.div>
+        {/* 3D Resume Preview - Now inside Hero */}
+        <Resume3DPreview />
 
       </motion.div>
     </section>
