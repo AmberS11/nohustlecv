@@ -1,15 +1,16 @@
 'use client'
 
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
-import { ArrowRight, Sparkles, TrendingUp, Users, Award, Zap } from 'lucide-react'
+import { ArrowRight, Sparkles, TrendingUp, Users, Award, Zap, CheckCircle, RotateCw } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 export default function Hero() {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false)
   const [showJourney, setShowJourney] = useState(false)
-  const [liveCount, setLiveCount] = useState(0)
+  const [liveCount, setLiveCount] = useState(100)
   const [currentStat, setCurrentStat] = useState(0)
+  const [rotation, setRotation] = useState(0)
   const containerRef = useRef(null)
   
   const { scrollYProgress } = useScroll({
@@ -23,20 +24,20 @@ export default function Hero() {
   
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100 })
 
-  // Live resume counter
+  // Live resume counter (starts at 100, increments slowly)
   useEffect(() => {
     const interval = setInterval(() => {
-      setLiveCount(prev => prev + Math.floor(Math.random() * 3))
-    }, 3000)
+      setLiveCount(prev => prev + Math.floor(Math.random() * 2))
+    }, 5000)
     return () => clearInterval(interval)
   }, [])
 
-  // Rotating stats
+  // Rotating stats - YOUR REAL NUMBERS
   const stats = [
-    { value: "94%", label: "ATS Success Rate", icon: <Zap className="w-4 h-4" /> },
-    { value: "₹799", label: "Yearly Plan", icon: <TrendingUp className="w-4 h-4" /> },
-    { value: "28k+", label: "Resumes Built", icon: <Users className="w-4 h-4" /> },
-    { value: "4.9★", label: "User Rating", icon: <Award className="w-4 h-4" /> },
+    { value: "3", label: "Premium Templates", sub: "More on the way", icon: <Sparkles className="w-4 h-4" /> },
+    { value: "₹799", label: "Yearly Plan", sub: "¼ competitor price", icon: <TrendingUp className="w-4 h-4" /> },
+    { value: "1", label: "Free Premium Resume + AI Letter", sub: "No credit card required", icon: <Zap className="w-4 h-4" /> },
+    { value: "8", label: "Identity-Based Layouts", sub: "For every career stage", icon: <Users className="w-4 h-4" /> },
   ]
 
   useEffect(() => {
@@ -46,10 +47,27 @@ export default function Hero() {
     return () => clearInterval(interval)
   }, [])
 
+  // 360° Rotatable Carousel Stages
+  const journeyStages = [
+    { stage: "Resume Built", icon: "📄", color: "from-blue-500 to-cyan-500", value: "3 templates" },
+    { stage: "ATS Optimized", icon: "⚡", color: "from-green-500 to-emerald-500", value: "94% success" },
+    { stage: "Applications", icon: "📨", color: "from-purple-500 to-pink-500", value: "1-click apply" },
+    { stage: "Interviews", icon: "🎯", color: "from-orange-500 to-red-500", value: "8 avg calls" },
+    { stage: "Growth", icon: "📈", color: "from-primary to-secondary", value: "Career path" },
+  ]
+
+  const handleRotate = (direction) => {
+    if (direction === 'next') {
+      setRotation(prev => prev - 72) // 360/5 = 72 degrees per stage
+    } else {
+      setRotation(prev => prev + 72)
+    }
+  }
+
   // Particles for dynamic background
   const [particles, setParticles] = useState([])
   useEffect(() => {
-    const newParticles = [...Array(30)].map(() => ({
+    const newParticles = [...Array(20)].map(() => ({
       id: Math.random(),
       x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
       y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
@@ -120,30 +138,33 @@ export default function Hero() {
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-6 pt-32 pb-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 items-start">
           
           {/* Left Column - Text Content */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
+            className="space-y-8"
           >
             {/* Authority Badges */}
-            <div className="flex items-center gap-4 mb-8">
+            <div className="flex items-center gap-4">
               <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-white dark:border-dark" />
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-white dark:border-dark flex items-center justify-center text-white text-xs font-bold">
+                    {['A', 'M', 'K'][i-1]}
+                  </div>
                 ))}
               </div>
-              <span className="text-sm text-gray-300">Trusted by 28,000+ professionals</span>
+              <span className="text-sm text-gray-300">Trusted by early adopters</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="text-white">Let there be</span>
+            <h1 className="text-5xl md:text-7xl font-bold">
+              <span className="text-white">Built different.</span>
               <br />
               <span className="bg-gradient-to-r from-primary via-secondary to-gold bg-clip-text text-transparent">
-                change.
+                Built for you.
               </span>
             </h1>
 
@@ -153,7 +174,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="mb-8 p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 inline-block"
+              className="p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 inline-block"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/20 rounded-lg">
@@ -162,17 +183,42 @@ export default function Hero() {
                 <div>
                   <div className="text-2xl font-bold text-white">{stats[currentStat].value}</div>
                   <div className="text-sm text-gray-400">{stats[currentStat].label}</div>
+                  <div className="text-xs text-primary">{stats[currentStat].sub}</div>
                 </div>
               </div>
             </motion.div>
 
+            {/* Stats Grid - Your Real Numbers */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                <div className="text-2xl font-bold text-white">3</div>
+                <div className="text-sm text-gray-400">Premium Templates</div>
+                <div className="text-xs text-primary">More on the way</div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                <div className="text-2xl font-bold text-white">₹799</div>
+                <div className="text-sm text-gray-400">Yearly Plan</div>
+                <div className="text-xs text-primary">¼ competitor price</div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                <div className="text-2xl font-bold text-white">1</div>
+                <div className="text-sm text-gray-400">Free Premium Resume</div>
+                <div className="text-xs text-primary">+ AI Cover Letter</div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                <div className="text-2xl font-bold text-white">8</div>
+                <div className="text-sm text-gray-400">Identity-Based Layouts</div>
+                <div className="text-xs text-primary">For every stage</div>
+              </div>
+            </div>
+
             {/* Subheadline */}
-            <p className="text-xl text-gray-300 mb-8 max-w-lg">
-              It is human in the lead, not human in the loop. Technology serves your dream — not the other way around.
+            <p className="text-lg text-gray-300">
+              Walking alongside your career journey — with premium tools at fair prices.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 mb-12">
+            <div className="flex flex-wrap gap-4">
               <Link
                 href="/templates"
                 className="group relative px-8 py-4 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all text-lg font-semibold overflow-hidden"
@@ -190,114 +236,121 @@ export default function Hero() {
                 onClick={() => setShowJourney(true)}
                 className="px-8 py-4 border-2 border-white/20 rounded-xl hover:border-primary/50 hover:bg-white/5 transition-all text-white text-lg font-semibold backdrop-blur-sm"
               >
-                Explore 360° Value
+                Explore 360° Journey
               </button>
             </div>
 
             {/* Live Activity Feed */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-400">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                 </span>
-                <span>{liveCount} resumes built in the last hour</span>
+                <span>{liveCount}+ early users building resumes</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Zap className="w-4 h-4 text-primary" />
-                <span>28,452 dreams launched this month</span>
+                <CheckCircle className="w-4 h-4 text-primary" />
+                <span>Monthly & Lifetime plans available</span>
               </div>
             </div>
           </motion.div>
 
-          {/* Right Column - 360° Experience */}
+          {/* Right Column - 360° Rotatable Carousel */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative"
+            className="relative perspective-1000"
           >
-            {/* Interactive Journey Map */}
             <div className="bg-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/10">
-              <h3 className="text-xl font-bold text-white mb-6">Your 360° Journey</h3>
-              
-              {/* Journey Steps */}
-              <div className="space-y-6">
-                {[
-                  { stage: "Resume Built", value: "28,452", icon: "📄", active: true },
-                  { stage: "ATS Optimized", value: "94%", icon: "⚡", active: true },
-                  { stage: "Applications Sent", value: "112k", icon: "📨", active: true },
-                  { stage: "Interviews Landed", value: "31k", icon: "🎯", active: false },
-                ].map((step, i) => (
-                  <motion.div
-                    key={i}
-                    className="relative"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 + i * 0.1 }}
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-white">Your 360° Journey</h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleRotate('prev')}
+                    className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl
-                        ${step.active ? 'bg-primary/20' : 'bg-gray-800/50'}`}
-                      >
-                        {step.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-white">{step.stage}</span>
-                          <span className={`font-bold ${step.active ? 'text-primary' : 'text-gray-500'}`}>
-                            {step.value}
-                          </span>
-                        </div>
-                        <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                          <motion.div
-                            className={`h-full ${step.active ? 'bg-primary' : 'bg-gray-600'}`}
-                            initial={{ width: 0 }}
-                            animate={{ width: step.active ? '100%' : '60%' }}
-                            transition={{ duration: 1, delay: 0.8 + i * 0.1 }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    {i < 3 && (
-                      <div className="absolute left-5 top-10 w-0.5 h-6 bg-gradient-to-b from-primary to-transparent" />
-                    )}
-                  </motion.div>
-                ))}
+                    ←
+                  </button>
+                  <button
+                    onClick={() => handleRotate('next')}
+                    className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+                  >
+                    →
+                  </button>
+                </div>
               </div>
 
-              {/* Live Impact Counter */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 }}
-                className="mt-8 p-4 bg-primary/10 rounded-xl border border-primary/20"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-white">Total Salary Impact</span>
-                  <span className="text-2xl font-bold text-primary">₹2.4Cr</span>
-                </div>
-                <p className="text-sm text-gray-400 mt-1">Average increase of ₹84k per person</p>
-              </motion.div>
+              {/* 3D Rotatable Carousel */}
+              <div className="relative h-80 preserve-3d" style={{ perspective: '1000px' }}>
+                <motion.div
+                  className="relative w-full h-full preserve-3d"
+                  animate={{ rotateY: rotation }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                  style={{ transformStyle: 'preserve-3d' }}
+                >
+                  {journeyStages.map((stage, index) => {
+                    const angle = (index * 72) * (Math.PI / 180)
+                    const radius = 200
+                    const x = Math.sin(angle) * radius
+                    const z = Math.cos(angle) * radius
+                    
+                    return (
+                      <motion.div
+                        key={index}
+                        className="absolute inset-0 flex items-center justify-center"
+                        style={{
+                          transform: `translateX(${x}px) translateZ(${z}px) rotateY(${index * 72}deg)`,
+                          transformStyle: 'preserve-3d',
+                          backfaceVisibility: 'hidden',
+                        }}
+                      >
+                        <div className={`w-48 h-48 bg-gradient-to-br ${stage.color} rounded-2xl p-6 shadow-2xl border border-white/10 flex flex-col items-center justify-center text-center`}>
+                          <div className="text-4xl mb-3">{stage.icon}</div>
+                          <h4 className="text-white font-bold mb-2">{stage.stage}</h4>
+                          <p className="text-white/80 text-sm">{stage.value}</p>
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </motion.div>
+              </div>
+
+              {/* Current Stage Indicator */}
+              <div className="flex justify-center gap-2 mt-6">
+                {journeyStages.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setRotation(-i * 72)}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      Math.abs(rotation + i * 72) % 360 < 10
+                        ? 'w-8 bg-primary'
+                        : 'bg-gray-600'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
 
-            {/* CEO Quote Card */}
+            {/* Founder Quote Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2 }}
-              className="absolute -bottom-8 -left-8 w-64 bg-dark/90 backdrop-blur-md rounded-xl p-4 border border-gray-800"
+              className="mt-8 w-full bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-md rounded-xl p-6 border border-primary/20"
             >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary" />
-                <div>
-                  <p className="text-white font-semibold">Amber</p>
-                  <p className="text-xs text-gray-400">Founder, NoHustleCV</p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xl">
+                  A
+                </div>
+                <div className="flex-1">
+                  <p className="text-white text-lg italic">
+                    "We're not here to copy. We're here to build something that actually cares about your journey — without the premium price tag."
+                  </p>
+                  <p className="text-primary mt-2 font-medium">— Amber, Founder of NoHustleCV</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300">
-                "It's not about formatting text. It's about formatting futures."
-              </p>
             </motion.div>
           </motion.div>
         </div>
@@ -323,25 +376,35 @@ export default function Hero() {
             className="bg-dark border border-gray-800 rounded-2xl max-w-4xl w-full p-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-3xl font-bold text-white mb-6">360° Value Creation</h2>
+            <h2 className="text-3xl font-bold text-white mb-6">Your 360° Journey</h2>
             <div className="grid grid-cols-2 gap-6">
-              {[
-                { label: "Resumes Built", value: "28,452" },
-                { label: "ATS Success Rate", value: "94%" },
-                { label: "Salary Impact", value: "₹2.4Cr" },
-                { label: "Partner Colleges", value: "50+" },
-                { label: "Active Users", value: "12k" },
-                { label: "Avg. Interview Calls", value: "8.3" },
-              ].map((item, i) => (
-                <div key={i} className="bg-gray-900/50 rounded-xl p-4">
-                  <div className="text-3xl font-bold text-primary mb-1">{item.value}</div>
-                  <div className="text-gray-400">{item.label}</div>
-                </div>
-              ))}
+              <div className="bg-gray-900/50 rounded-xl p-4">
+                <div className="text-3xl font-bold text-primary mb-1">3</div>
+                <div className="text-gray-400">Premium Templates</div>
+                <div className="text-xs text-primary">More on the way</div>
+              </div>
+              <div className="bg-gray-900/50 rounded-xl p-4">
+                <div className="text-3xl font-bold text-primary mb-1">₹799</div>
+                <div className="text-gray-400">Yearly Plan</div>
+                <div className="text-xs text-primary">¼ competitor price</div>
+              </div>
+              <div className="bg-gray-900/50 rounded-xl p-4">
+                <div className="text-3xl font-bold text-primary mb-1">1</div>
+                <div className="text-gray-400">Free Premium Resume</div>
+                <div className="text-xs text-primary">+ AI Cover Letter</div>
+              </div>
+              <div className="bg-gray-900/50 rounded-xl p-4">
+                <div className="text-3xl font-bold text-primary mb-1">8</div>
+                <div className="text-gray-400">Identity-Based Layouts</div>
+                <div className="text-xs text-primary">For every career stage</div>
+              </div>
             </div>
+            <p className="text-gray-300 mt-6 text-center italic">
+              Walking alongside your career journey — with premium tools at fair prices.
+            </p>
             <button
               onClick={() => setShowJourney(false)}
-              className="mt-6 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              className="mt-6 w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
               Close
             </button>
