@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { ArrowRight, Sparkles, TrendingUp, Users, Zap, CheckCircle } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
@@ -12,7 +12,6 @@ export default function Hero() {
   const [currentStat, setCurrentStat] = useState(0)
   const [activeStage, setActiveStage] = useState(0)
   const containerRef = useRef(null)
-  const carouselRef = useRef(null)
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -20,7 +19,6 @@ export default function Hero() {
   })
   
   const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.2])
-  const textY = useTransform(scrollYProgress, [0, 1], [0, -100])
   const contentOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.8])
 
   // Live resume counter
@@ -54,46 +52,6 @@ export default function Hero() {
     { stage: "Interviews", icon: "🎯", color: "from-orange-600 to-red-600", value: "8 avg calls" },
     { stage: "Growth", icon: "📈", color: "from-primary to-secondary", value: "Career path" },
   ]
-
-  // Swipe handling
-  const [touchStart, setTouchStart] = useState(0)
-  const [touchEnd, setTouchEnd] = useState(0)
-  const minSwipeDistance = 50
-
-  const onTouchStart = (e) => {
-    setTouchEnd(0)
-    setTouchStart(e.targetTouches[0].clientX)
-  }
-
-  const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX)
-  }
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
-    const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > minSwipeDistance
-    const isRightSwipe = distance < -minSwipeDistance
-    
-    if (isLeftSwipe) {
-      setActiveStage((prev) => (prev + 1) % journeyStages.length)
-    }
-    if (isRightSwipe) {
-      setActiveStage((prev) => (prev - 1 + journeyStages.length) % journeyStages.length)
-    }
-  }
-
-  // Mouse wheel handling for desktop
-  const onWheel = (e) => {
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-      e.preventDefault()
-      if (e.deltaX > 0) {
-        setActiveStage((prev) => (prev + 1) % journeyStages.length)
-      } else {
-        setActiveStage((prev) => (prev - 1 + journeyStages.length) % journeyStages.length)
-      }
-    }
-  }
 
   return (
     <section 
@@ -240,7 +198,7 @@ export default function Hero() {
             </div>
           </motion.div>
 
-          {/* Right Column - Swipe-Friendly Carousel */}
+          {/* Right Column - Simple Carousel */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -250,49 +208,58 @@ export default function Hero() {
             <div className="bg-dark/40 backdrop-blur-md rounded-2xl p-8 border border-gray-800">
               <h3 className="text-xl font-bold text-white mb-6 text-center">Your 360° Journey</h3>
 
-              {/* Carousel Container */}
-              <div 
-                ref={carouselRef}
-                className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none"
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-                onWheel={onWheel}
-              >
-                {/* Cards Container */}
-                <div className="flex transition-transform duration-300 ease-out"
-                     style={{ transform: `translateX(-${activeStage * 100}%)` }}
+              {/* Current Stage Display */}
+              <div className="relative overflow-hidden rounded-2xl">
+                <div 
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{ transform: `translateX(-${activeStage * 100}%)` }}
                 >
                   {journeyStages.map((stage, index) => (
-                    <div key={index} className="w-full flex-shrink-0 px-4">
-                      <div className={`w-full aspect-square bg-gradient-to-br ${stage.color} rounded-2xl p-8 shadow-2xl border border-gray-700 flex flex-col items-center justify-center text-center`}>
-                        <div className="text-6xl mb-4 drop-shadow-lg">{stage.icon}</div>
-                        <h4 className="text-2xl text-white font-bold mb-3 drop-shadow">{stage.stage}</h4>
-                        <p className="text-white/90 text-lg drop-shadow">{stage.value}</p>
+                    <div key={index} className="w-full flex-shrink-0 px-2">
+                      <div className={`w-full bg-gradient-to-br ${stage.color} rounded-2xl p-8 shadow-2xl border border-gray-700 text-center`}>
+                        <div className="text-7xl mb-4">{stage.icon}</div>
+                        <h4 className="text-2xl text-white font-bold mb-2">{stage.stage}</h4>
+                        <p className="text-white/90 text-lg">{stage.value}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Stage Indicators */}
-              <div className="flex justify-center gap-2 mt-6">
-                {journeyStages.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setActiveStage(index)}
-                    className={`h-2 rounded-full transition-all ${
-                      activeStage === index
-                        ? 'w-8 bg-primary'
-                        : 'w-2 bg-gray-600 hover:bg-gray-500'
-                    }`}
-                  />
-                ))}
+              {/* Manual Controls */}
+              <div className="flex items-center justify-between mt-6">
+                <button
+                  onClick={() => setActiveStage(prev => (prev - 1 + journeyStages.length) % journeyStages.length)}
+                  className="w-12 h-12 rounded-full bg-primary/20 hover:bg-primary/40 transition-colors flex items-center justify-center text-white text-2xl"
+                >
+                  ←
+                </button>
+                
+                <div className="flex gap-2">
+                  {journeyStages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setActiveStage(index)}
+                      className={`h-2 rounded-full transition-all ${
+                        activeStage === index
+                          ? 'w-8 bg-primary'
+                          : 'w-2 bg-gray-600 hover:bg-gray-500'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setActiveStage(prev => (prev + 1) % journeyStages.length)}
+                  className="w-12 h-12 rounded-full bg-primary/20 hover:bg-primary/40 transition-colors flex items-center justify-center text-white text-2xl"
+                >
+                  →
+                </button>
               </div>
 
-              {/* Swipe Hint */}
+              {/* Simple Hint */}
               <p className="text-center text-sm text-gray-400 mt-4">
-                ← Swipe or use arrow keys →
+                Click the buttons to navigate your journey
               </p>
             </div>
 
