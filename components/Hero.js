@@ -1,250 +1,274 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { ArrowRight, Sparkles, CheckCircle } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { ArrowRight, Sparkles, Play } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import Resume3DPreview from './Resume3DPreview'
 
 export default function Hero() {
-  const [flippingText, setFlippingText] = useState(0)
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false)
+  const [showStoryModal, setShowStoryModal] = useState(false)
+  const containerRef = useRef(null)
   
-  const taglines = [
-    "Premium resumes, fairly priced.",
-    "AI-powered, human-centered.",
-    "Your career's secret weapon.",
-    "From student to CEO.",
-  ]
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  })
+  
+  const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.2])
+  const videoOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.3])
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -100])
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFlippingText((prev) => (prev + 1) % taglines.length)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const features = [
-    "AI Cover Letter Generator",
-    "ATS-Optimized Templates",
-    "LinkedIn Import",
-    "Identity-Based Assistance",
-    "Unlimited Exports",
-    "Priority Support"
-  ]
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
+  // Sample success stories for modal
+  const successStories = [
+    {
+      name: "Priya S.",
+      role: "Software Engineer @ Google",
+      image: "/stories/priya.jpg", // Placeholder
+      video: "/stories/priya-story.mp4", // Placeholder
+      quote: "I applied to 12 companies. Got 8 interview calls. NoHustleCV didn't just format my resume — it formatted my confidence.",
+      beforeAfter: {
+        before: "2 interviews",
+        after: "8 interviews",
+        salaryBefore: "₹12 LPA",
+        salaryAfter: "₹45 LPA"
       }
-    }
-  }
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { type: "spring", stiffness: 100 }
-    }
-  }
+    },
+    // Add more stories as needed
+  ]
 
   return (
-    <section className="relative py-20 md:py-32 overflow-hidden">
-      {/* Animated background elements */}
+    <section 
+      ref={containerRef}
+      className="relative h-screen overflow-hidden"
+    >
+      {/* Video Background with Parallax */}
       <motion.div 
-        className="absolute top-20 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl"
-        animate={{ 
-          x: [0, 30, 0],
-          y: [0, -30, 0],
+        className="absolute inset-0 w-full h-full"
+        style={{ 
+          scale: videoScale,
+          opacity: videoOpacity
         }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div 
-        className="absolute bottom-20 right-10 w-80 h-80 bg-secondary/5 rounded-full blur-3xl"
-        animate={{ 
-          x: [0, -40, 0],
-          y: [0, 40, 0],
-        }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      <motion.div 
-        className="container mx-auto px-6 text-center"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
       >
+        {/* Fallback gradient while video loads */}
+        {!isVideoLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-br from-dark via-dark/90 to-primary/20" />
+        )}
         
-        {/* Premium badge with hover animation */}
-        <motion.div 
-          variants={itemVariants}
-          whileHover={{ scale: 1.05 }}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 dark:from-primary/20 dark:to-secondary/20 px-4 py-2 rounded-full mb-8"
+        {/* Video Element */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          onLoadedData={() => setIsVideoLoaded(true)}
+          className="absolute inset-0 w-full h-full object-cover"
+          poster="/hero-poster.jpg" // Add a poster image
         >
-          <Sparkles className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-primary">
-            Premium quality at ¼ competitor prices
-          </span>
-        </motion.div>
+          <source src="/videos/dream-journey.mp4" type="video/mp4" />
+          {/* Fallback for browsers that don't support video */}
+        </video>
 
-        {/* Main headline with staggered letters */}
-        <motion.h1 
-          variants={itemVariants}
-          className="text-5xl md:text-7xl font-bold mb-6"
-        >
-          <motion.span 
-            className="block text-dark dark:text-light"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            Professional Resumes,
-          </motion.span>
-          <motion.span 
-            className="block bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            Fairly Priced
-          </motion.span>
-        </motion.h1>
+        {/* Overlay gradient for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-dark via-dark/50 to-transparent" />
+      </motion.div>
 
-        {/* Animated tagline */}
-        <motion.div 
-          variants={itemVariants}
-          className="h-16 mb-8"
-        >
-          <motion.p 
-            key={flippingText}
-            className="text-2xl md:text-3xl text-gray-600 dark:text-gray-400"
+      {/* Floating dream particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-primary/30 rounded-full"
+            initial={{
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+            }}
+            animate={{
+              y: [null, -100],
+              opacity: [0, 1, 0],
+            }}
+            transition={{
+              duration: 5 + Math.random() * 5,
+              repeat: Infinity,
+              delay: Math.random() * 5,
+              ease: "linear",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Content */}
+      <motion.div 
+        className="relative z-10 container mx-auto px-6 h-full flex items-center"
+        style={{ y: textY }}
+      >
+        <div className="max-w-4xl">
+          {/* Premium badge with animation */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full mb-8"
           >
-            {taglines[flippingText]}
-          </motion.p>
-        </motion.div>
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-white">
+              Your dream job starts here
+            </span>
+          </motion.div>
 
-        {/* Feature pills */}
-        <motion.div 
-          variants={itemVariants}
-          className="flex flex-wrap justify-center gap-3 mb-12"
-        >
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-full"
-              whileHover={{ scale: 1.05, y: -2 }}
-              transition={{ type: "spring", stiffness: 400 }}
+          {/* Main headline with staggered animation */}
+          <motion.h1 
+            className="text-6xl md:text-8xl font-bold mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.span 
+              className="block text-white"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
             >
-              <CheckCircle className="w-4 h-4 text-green-500" />
-              <span className="text-sm font-medium">{feature}</span>
-            </motion.div>
-          ))}
-        </motion.div>
+              Your dream job
+            </motion.span>
+            <motion.span 
+              className="block bg-gradient-to-r from-primary via-secondary to-gold bg-clip-text text-transparent"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              starts here.
+            </motion.span>
+          </motion.h1>
 
-        {/* CTA Buttons */}
-        <motion.div 
-          variants={itemVariants}
-          className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
-        >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          {/* Subheadline */}
+          <motion.p 
+            className="text-xl md:text-2xl text-gray-300 mb-12 max-w-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+          >
+            NoHustleCV isn't just a resume builder. It's the bridge between who you are and who you want to become.
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
           >
             <Link
               href="/templates"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all text-lg font-semibold"
+              className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all text-lg font-semibold relative overflow-hidden"
             >
-              Start Building Free
+              <span className="relative z-10">Start Your Journey</span>
               <motion.div
                 animate={{ x: [0, 5, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5 relative z-10" />
               </motion.div>
+              {/* Shine effect */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                initial={{ x: "-100%" }}
+                whileHover={{ x: "100%" }}
+                transition={{ duration: 0.8 }}
+              />
             </Link>
-          </motion.div>
-          
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Link
-              href="/ats-checker"
-              className="inline-flex items-center justify-center px-8 py-4 border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:border-primary dark:hover:border-primary transition-all text-lg font-semibold"
-            >
-              Check ATS Score
-            </Link>
-          </motion.div>
-        </motion.div>
 
-        {/* Social proof with count-up animation */}
-        <motion.div 
-          variants={itemVariants}
-          className="flex flex-col md:flex-row items-center justify-center gap-8 text-gray-500 dark:text-gray-400 mb-20"
-        >
-          <motion.div 
-            className="text-center"
-            whileHover={{ scale: 1.1 }}
-          >
-            <motion.div 
-              className="text-3xl font-bold text-dark dark:text-light"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
+            <button
+              onClick={() => setShowStoryModal(true)}
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/20 rounded-xl hover:border-primary/50 hover:bg-white/5 transition-all text-lg font-semibold text-white backdrop-blur-sm"
             >
-              5,000+
-            </motion.div>
-            <div className="text-sm">Resumes Created</div>
+              <Play className="w-5 h-5" />
+              Watch Stories
+            </button>
           </motion.div>
-          
-          <div className="hidden md:block w-px h-12 bg-gray-300 dark:bg-gray-700" />
-          
-          <motion.div 
-            className="text-center"
-            whileHover={{ scale: 1.1 }}
-          >
-            <motion.div 
-              className="text-3xl font-bold text-dark dark:text-light"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2 }}
-            >
-              94%
-            </motion.div>
-            <div className="text-sm">ATS Pass Rate</div>
-          </motion.div>
-          
-          <div className="hidden md:block w-px h-12 bg-gray-300 dark:bg-gray-700" />
-          
-          <motion.div 
-            className="text-center"
-            whileHover={{ scale: 1.1 }}
-          >
-            <motion.div 
-              className="text-3xl font-bold text-dark dark:text-light"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.4 }}
-            >
-              ₹799
-            </motion.div>
-            <div className="text-sm">Yearly Plan (Save 78%)</div>
-          </motion.div>
-        </motion.div>
 
-        {/* 3D Resume Preview - Now inside Hero */}
-        <Resume3DPreview />
-
+          {/* Live stats ticker */}
+          <motion.div 
+            className="absolute bottom-12 left-6 right-6 flex justify-between items-center text-white/60 text-sm border-t border-white/10 pt-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              <span>3 resumes being built right now</span>
+            </div>
+            <div className="hidden md:block">⚡ 2 just got downloaded</div>
+            <div className="hidden md:block">🎯 1 just landed an interview</div>
+          </motion.div>
+        </div>
       </motion.div>
+
+      {/* Story Modal */}
+      {showStoryModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          onClick={() => setShowStoryModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 50 }}
+            animate={{ scale: 1, y: 0 }}
+            className="bg-dark border border-gray-800 rounded-2xl max-w-4xl w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white">Dreamers' Stories</h2>
+              <button
+                onClick={() => setShowStoryModal(false)}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {successStories.map((story, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-gray-900/50 rounded-xl p-6 border border-gray-800"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-2xl">
+                      {story.name[0]}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-white">{story.name}</h3>
+                      <p className="text-primary mb-3">{story.role}</p>
+                      <p className="text-gray-400 mb-4">"{story.quote}"</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-800/50 rounded-lg p-3">
+                          <p className="text-sm text-gray-400">Before</p>
+                          <p className="text-white font-bold">{story.beforeAfter.before}</p>
+                          <p className="text-sm text-gray-400">{story.beforeAfter.salaryBefore}</p>
+                        </div>
+                        <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
+                          <p className="text-sm text-primary">After</p>
+                          <p className="text-white font-bold">{story.beforeAfter.after}</p>
+                          <p className="text-sm text-primary">{story.beforeAfter.salaryAfter}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </section>
   )
 }
