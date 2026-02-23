@@ -1,7 +1,7 @@
 'use client'
 
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { ArrowRight, Sparkles, TrendingUp, Users, Award, Zap, CheckCircle } from 'lucide-react'
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion'
+import { ArrowRight, Sparkles, TrendingUp, Users, Zap, CheckCircle } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
@@ -10,8 +10,9 @@ export default function Hero() {
   const [showJourney, setShowJourney] = useState(false)
   const [liveCount, setLiveCount] = useState(100)
   const [currentStat, setCurrentStat] = useState(0)
-  const [rotation, setRotation] = useState(0)
+  const [activeStage, setActiveStage] = useState(0)
   const containerRef = useRef(null)
+  const carouselRef = useRef(null)
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -19,7 +20,6 @@ export default function Hero() {
   })
   
   const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.2])
-  const videoOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.3])
   const textY = useTransform(scrollYProgress, [0, 1], [0, -100])
   const contentOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.8])
 
@@ -55,34 +55,52 @@ export default function Hero() {
     { stage: "Growth", icon: "📈", color: "from-primary to-secondary", value: "Career path" },
   ]
 
-  const handleRotate = (direction) => {
-    if (direction === 'next') {
-      setRotation(prev => prev - 72)
-    } else {
-      setRotation(prev => prev + 72)
+  // Swipe handling
+  const [touchStart, setTouchStart] = useState(0)
+  const [touchEnd, setTouchEnd] = useState(0)
+  const minSwipeDistance = 50
+
+  const onTouchStart = (e) => {
+    setTouchEnd(0)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+    
+    if (isLeftSwipe) {
+      setActiveStage((prev) => (prev + 1) % journeyStages.length)
+    }
+    if (isRightSwipe) {
+      setActiveStage((prev) => (prev - 1 + journeyStages.length) % journeyStages.length)
     }
   }
 
-  // Particles
-  const [particles, setParticles] = useState([])
-  useEffect(() => {
-    const newParticles = [...Array(15)].map(() => ({
-      id: Math.random(),
-      x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-      y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
-      size: Math.random() * 2,
-      duration: 15 + Math.random() * 20,
-      delay: Math.random() * 5,
-    }))
-    setParticles(newParticles)
-  }, [])
+  // Mouse wheel handling for desktop
+  const onWheel = (e) => {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      e.preventDefault()
+      if (e.deltaX > 0) {
+        setActiveStage((prev) => (prev + 1) % journeyStages.length)
+      } else {
+        setActiveStage((prev) => (prev - 1 + journeyStages.length) % journeyStages.length)
+      }
+    }
+  }
 
   return (
     <section 
       ref={containerRef}
       className="relative min-h-screen overflow-hidden"
     >
-      {/* Video Background - Darker overlay for better contrast */}
+      {/* Video Background */}
       <motion.div 
         className="absolute inset-0 w-full h-full"
         style={{ scale: videoScale }}
@@ -102,37 +120,10 @@ export default function Hero() {
           <source src="/videos/dream-journey.mp4" type="video/mp4" />
         </video>
 
-        {/* Darker gradient overlay - increased opacity */}
         <div className="absolute inset-0 bg-gradient-to-r from-dark via-dark/90 to-dark/70" />
       </motion.div>
 
-      {/* Dynamic Particles - More subtle */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
-        {particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            className="absolute bg-primary/30 rounded-full"
-            style={{
-              width: particle.size,
-              height: particle.size,
-              x: particle.x,
-              y: particle.y,
-            }}
-            animate={{
-              y: [particle.y, particle.y - 150],
-              opacity: [0, 0.3, 0],
-            }}
-            transition={{
-              duration: particle.duration,
-              repeat: Infinity,
-              delay: particle.delay,
-              ease: "linear",
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Main Content with scroll-based opacity */}
+      {/* Main Content */}
       <motion.div 
         className="relative z-10 container mx-auto px-6 pt-32 pb-20"
         style={{ opacity: contentOpacity }}
@@ -146,7 +137,7 @@ export default function Hero() {
             transition={{ duration: 0.8 }}
             className="space-y-8"
           >
-            {/* Authority Badges - Darker background */}
+            {/* Authority Badges */}
             <div className="flex items-center gap-4">
               <div className="flex -space-x-2">
                 {[1, 2, 3].map((i) => (
@@ -169,7 +160,7 @@ export default function Hero() {
               </span>
             </h1>
 
-            {/* Dynamic Stat Display - Darker background */}
+            {/* Dynamic Stat Display */}
             <motion.div
               key={currentStat}
               initial={{ opacity: 0, y: 20 }}
@@ -189,7 +180,7 @@ export default function Hero() {
               </div>
             </motion.div>
 
-            {/* Stats Grid - Darker cards */}
+            {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4">
               {[
                 { value: "3", label: "Premium Templates", sub: "More on the way" },
@@ -249,99 +240,63 @@ export default function Hero() {
             </div>
           </motion.div>
 
-          {/* Right Column - 360° Rotatable Carousel */}
+          {/* Right Column - Swipe-Friendly Carousel */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative perspective-1000"
+            className="relative"
           >
             <div className="bg-dark/40 backdrop-blur-md rounded-2xl p-8 border border-gray-800">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">Your 360° Journey</h3>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleRotate('prev')}
-                    className="p-2 bg-dark/60 rounded-lg hover:bg-dark/80 transition-colors text-white border border-gray-700"
-                  >
-                    ←
-                  </button>
-                  <button
-                    onClick={() => handleRotate('next')}
-                    className="p-2 bg-dark/60 rounded-lg hover:bg-dark/80 transition-colors text-white border border-gray-700"
-                  >
-                    →
-                  </button>
+              <h3 className="text-xl font-bold text-white mb-6 text-center">Your 360° Journey</h3>
+
+              {/* Carousel Container */}
+              <div 
+                ref={carouselRef}
+                className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+                onWheel={onWheel}
+              >
+                {/* Cards Container */}
+                <div className="flex transition-transform duration-300 ease-out"
+                     style={{ transform: `translateX(-${activeStage * 100}%)` }}
+                >
+                  {journeyStages.map((stage, index) => (
+                    <div key={index} className="w-full flex-shrink-0 px-4">
+                      <div className={`w-full aspect-square bg-gradient-to-br ${stage.color} rounded-2xl p-8 shadow-2xl border border-gray-700 flex flex-col items-center justify-center text-center`}>
+                        <div className="text-6xl mb-4 drop-shadow-lg">{stage.icon}</div>
+                        <h4 className="text-2xl text-white font-bold mb-3 drop-shadow">{stage.stage}</h4>
+                        <p className="text-white/90 text-lg drop-shadow">{stage.value}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* 3D Rotatable Carousel - Now with drag support */}
-              <div className="relative h-80 preserve-3d" style={{ perspective: '1000px' }}>
-                <motion.div
-                  className="relative w-full h-full preserve-3d cursor-grab active:cursor-grabbing"
-                  animate={{ rotateY: rotation }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                  style={{ transformStyle: 'preserve-3d' }}
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.1}
-                  onDrag={(event, info) => {
-                    // Convert drag distance to rotation
-                    const dragRotation = info.delta.x * 0.5
-                    setRotation(prev => prev + dragRotation)
-                  }}
-                  onDragEnd={() => {
-                    // Snap to nearest stage
-                    const nearestStage = Math.round(rotation / 72) * 72
-                    setRotation(nearestStage)
-                  }}
-                >
-                  {journeyStages.map((stage, index) => {
-                    const angle = (index * 72) * (Math.PI / 180)
-                    const radius = 200
-                    const x = Math.sin(angle) * radius
-                    const z = Math.cos(angle) * radius
-                    
-                    return (
-                      <motion.div
-                        key={index}
-                        className="absolute inset-0 flex items-center justify-center"
-                        style={{
-                          transform: `translateX(${x}px) translateZ(${z}px) rotateY(${index * 72}deg)`,
-                          transformStyle: 'preserve-3d',
-                          backfaceVisibility: 'hidden',
-                        }}
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <div className={`w-48 h-48 bg-gradient-to-br ${stage.color} rounded-2xl p-6 shadow-2xl border border-gray-700 flex flex-col items-center justify-center text-center`}>
-                          <div className="text-4xl mb-3 drop-shadow-lg">{stage.icon}</div>
-                          <h4 className="text-white font-bold mb-2 drop-shadow">{stage.stage}</h4>
-                          <p className="text-white/90 text-sm drop-shadow">{stage.value}</p>
-                        </div>
-                      </motion.div>
-                    )
-                  })}
-                </motion.div>
-              </div>
-
-              {/* Current Stage Indicator */}
+              {/* Stage Indicators */}
               <div className="flex justify-center gap-2 mt-6">
-                {journeyStages.map((_, i) => (
+                {journeyStages.map((_, index) => (
                   <button
-                    key={i}
-                    onClick={() => setRotation(-i * 72)}
+                    key={index}
+                    onClick={() => setActiveStage(index)}
                     className={`h-2 rounded-full transition-all ${
-                      Math.abs(rotation + i * 72) % 360 < 10
+                      activeStage === index
                         ? 'w-8 bg-primary'
                         : 'w-2 bg-gray-600 hover:bg-gray-500'
                     }`}
                   />
                 ))}
               </div>
+
+              {/* Swipe Hint */}
+              <p className="text-center text-sm text-gray-400 mt-4">
+                ← Swipe or use arrow keys →
+              </p>
             </div>
 
-            {/* Founder Quote Card - Moved inside to avoid overlap */}
+            {/* Founder Quote Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
