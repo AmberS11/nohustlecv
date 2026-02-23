@@ -275,40 +275,55 @@ export default function Hero() {
                 </div>
               </div>
 
-              {/* 3D Rotatable Carousel */}
-              <div className="relative h-80 preserve-3d" style={{ perspective: '1000px' }}>
-                <motion.div
-                  className="relative w-full h-full preserve-3d"
-                  animate={{ rotateY: rotation }}
-                  transition={{ duration: 0.8, ease: "easeInOut" }}
-                  style={{ transformStyle: 'preserve-3d' }}
-                >
-                  {journeyStages.map((stage, index) => {
-                    const angle = (index * 72) * (Math.PI / 180)
-                    const radius = 200
-                    const x = Math.sin(angle) * radius
-                    const z = Math.cos(angle) * radius
-                    
-                    return (
-                      <motion.div
-                        key={index}
-                        className="absolute inset-0 flex items-center justify-center"
-                        style={{
-                          transform: `translateX(${x}px) translateZ(${z}px) rotateY(${index * 72}deg)`,
-                          transformStyle: 'preserve-3d',
-                          backfaceVisibility: 'hidden',
-                        }}
-                      >
-                        <div className={`w-48 h-48 bg-gradient-to-br ${stage.color} rounded-2xl p-6 shadow-2xl border border-gray-700 flex flex-col items-center justify-center text-center`}>
-                          <div className="text-4xl mb-3 drop-shadow-lg">{stage.icon}</div>
-                          <h4 className="text-white font-bold mb-2 drop-shadow">{stage.stage}</h4>
-                          <p className="text-white/90 text-sm drop-shadow">{stage.value}</p>
-                        </div>
-                      </motion.div>
-                    )
-                  })}
-                </motion.div>
-              </div>
+              {/* 3D Rotatable Carousel - Now with drag support */}
+<div className="relative h-80 preserve-3d" style={{ perspective: '1000px' }}>
+  <motion.div
+    className="relative w-full h-full preserve-3d cursor-grab active:cursor-grabbing"
+    animate={{ rotateY: rotation }}
+    transition={{ duration: 0.5, ease: "easeOut" }}
+    style={{ transformStyle: 'preserve-3d' }}
+    drag="x"
+    dragConstraints={{ left: 0, right: 0 }}
+    dragElastic={0.1}
+    onDrag={(event, info) => {
+      // Convert drag distance to rotation
+      const dragRotation = info.delta.x * 0.5
+      setRotation(prev => prev + dragRotation)
+    }}
+    onDragEnd={() => {
+      // Snap to nearest stage
+      const nearestStage = Math.round(rotation / 72) * 72
+      setRotation(nearestStage)
+    }}
+  >
+    {journeyStages.map((stage, index) => {
+      const angle = (index * 72) * (Math.PI / 180)
+      const radius = 200
+      const x = Math.sin(angle) * radius
+      const z = Math.cos(angle) * radius
+      
+      return (
+        <motion.div
+          key={index}
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            transform: `translateX(${x}px) translateZ(${z}px) rotateY(${index * 72}deg)`,
+            transformStyle: 'preserve-3d',
+            backfaceVisibility: 'hidden',
+          }}
+          whileHover={{ scale: 1.05 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          <div className={`w-48 h-48 bg-gradient-to-br ${stage.color} rounded-2xl p-6 shadow-2xl border border-gray-700 flex flex-col items-center justify-center text-center`}>
+            <div className="text-4xl mb-3 drop-shadow-lg">{stage.icon}</div>
+            <h4 className="text-white font-bold mb-2 drop-shadow">{stage.stage}</h4>
+            <p className="text-white/90 text-sm drop-shadow">{stage.value}</p>
+          </div>
+        </motion.div>
+      )
+    })}
+  </motion.div>
+</div>/div>
 
               {/* Current Stage Indicator */}
               <div className="flex justify-center gap-2 mt-6">
