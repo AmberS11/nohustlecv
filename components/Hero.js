@@ -7,7 +7,8 @@ import Link from 'next/link'
 
 export default function Hero() {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false)
-  const [showStoryModal, setShowStoryModal] = useState(false)
+  const [showPromiseModal, setShowPromiseModal] = useState(false)
+  const [particles, setParticles] = useState([])
   const containerRef = useRef(null)
   
   const { scrollYProgress } = useScroll({
@@ -19,23 +20,17 @@ export default function Hero() {
   const videoOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.3])
   const textY = useTransform(scrollYProgress, [0, 1], [0, -100])
 
-  // Sample success stories for modal
-  const successStories = [
-    {
-      name: "Priya S.",
-      role: "Software Engineer @ Google",
-      image: "/stories/priya.jpg", // Placeholder
-      video: "/stories/priya-story.mp4", // Placeholder
-      quote: "I applied to 12 companies. Got 8 interview calls. NoHustleCV didn't just format my resume — it formatted my confidence.",
-      beforeAfter: {
-        before: "2 interviews",
-        after: "8 interviews",
-        salaryBefore: "₹12 LPA",
-        salaryAfter: "₹45 LPA"
-      }
-    },
-    // Add more stories as needed
-  ]
+  // Initialize particles only on client side
+  useEffect(() => {
+    const newParticles = [...Array(20)].map(() => ({
+      id: Math.random(),
+      x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
+      y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
+      duration: 5 + Math.random() * 5,
+      delay: Math.random() * 5,
+    }))
+    setParticles(newParticles)
+  }, [])
 
   return (
     <section 
@@ -63,10 +58,9 @@ export default function Hero() {
           playsInline
           onLoadedData={() => setIsVideoLoaded(true)}
           className="absolute inset-0 w-full h-full object-cover"
-          poster="/hero-poster.jpg" // Add a poster image
+          poster="/hero-poster.jpg"
         >
           <source src="/videos/dream-journey.mp4" type="video/mp4" />
-          {/* Fallback for browsers that don't support video */}
         </video>
 
         {/* Overlay gradient for text readability */}
@@ -75,22 +69,22 @@ export default function Hero() {
 
       {/* Floating dream particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {particles.map((particle) => (
           <motion.div
-            key={i}
+            key={particle.id}
             className="absolute w-1 h-1 bg-primary/30 rounded-full"
             initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
+              x: particle.x,
+              y: particle.y,
             }}
             animate={{
-              y: [null, -100],
+              y: [particle.y, particle.y - 100],
               opacity: [0, 1, 0],
             }}
             transition={{
-              duration: 5 + Math.random() * 5,
+              duration: particle.duration,
               repeat: Infinity,
-              delay: Math.random() * 5,
+              delay: particle.delay,
               ease: "linear",
             }}
           />
@@ -112,7 +106,7 @@ export default function Hero() {
           >
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-white">
-              Your dream job starts here
+              Premium quality at ¼ competitor prices
             </span>
           </motion.div>
 
@@ -179,11 +173,11 @@ export default function Hero() {
             </Link>
 
             <button
-              onClick={() => setShowStoryModal(true)}
+              onClick={() => setShowPromiseModal(true)}
               className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/20 rounded-xl hover:border-primary/50 hover:bg-white/5 transition-all text-lg font-semibold text-white backdrop-blur-sm"
             >
               <Play className="w-5 h-5" />
-              Watch Stories
+              See Our Promise
             </button>
           </motion.div>
 
@@ -199,22 +193,22 @@ export default function Hero() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
-              <span>3 resumes being built right now</span>
+              <span>Premium resumes built daily</span>
             </div>
-            <div className="hidden md:block">⚡ 2 just got downloaded</div>
-            <div className="hidden md:block">🎯 1 just landed an interview</div>
+            <div className="hidden md:block">⚡ Trusted by students & professionals</div>
+            <div className="hidden md:block">🎯 ₹799/year · Save 78%</div>
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Story Modal */}
-      {showStoryModal && (
+      {/* Promise Modal - No Fake Stories, Just Real Value */}
+      {showPromiseModal && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
-          onClick={() => setShowStoryModal(false)}
+          onClick={() => setShowPromiseModal(false)}
         >
           <motion.div
             initial={{ scale: 0.9, y: 50 }}
@@ -223,48 +217,120 @@ export default function Hero() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-white">Dreamers' Stories</h2>
+              <h2 className="text-2xl font-bold text-white">The NoHustleCV Promise</h2>
               <button
-                onClick={() => setShowStoryModal(false)}
+                onClick={() => setShowPromiseModal(false)}
                 className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
               >
                 ✕
               </button>
             </div>
             
-            <div className="p-6 space-y-6">
-              {successStories.map((story, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-gray-900/50 rounded-xl p-6 border border-gray-800"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-2xl">
-                      {story.name[0]}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-white">{story.name}</h3>
-                      <p className="text-primary mb-3">{story.role}</p>
-                      <p className="text-gray-400 mb-4">"{story.quote}"</p>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-800/50 rounded-lg p-3">
-                          <p className="text-sm text-gray-400">Before</p>
-                          <p className="text-white font-bold">{story.beforeAfter.before}</p>
-                          <p className="text-sm text-gray-400">{story.beforeAfter.salaryBefore}</p>
-                        </div>
-                        <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
-                          <p className="text-sm text-primary">After</p>
-                          <p className="text-white font-bold">{story.beforeAfter.after}</p>
-                          <p className="text-sm text-primary">{story.beforeAfter.salaryAfter}</p>
-                        </div>
-                      </div>
-                    </div>
+            <div className="p-6 space-y-8">
+              
+              {/* Premium Quality at Fair Price */}
+              <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
+                <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">💰</span>
+                  Premium Quality at ¼ the Price
+                </h3>
+                <p className="text-gray-400">
+                  While competitors charge ₹2,000+ for premium templates, NoHustleCV delivers the same quality at just ₹799/year. 
+                  Because career advancement shouldn't cost a fortune.
+                </p>
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div className="bg-gray-800/50 rounded-lg p-3">
+                    <p className="text-sm text-gray-400">Competitors</p>
+                    <p className="text-white font-bold">₹2,400+</p>
+                    <p className="text-xs text-gray-500">per year</p>
                   </div>
-                </motion.div>
-              ))}
+                  <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
+                    <p className="text-sm text-primary">NoHustleCV</p>
+                    <p className="text-white font-bold">₹799</p>
+                    <p className="text-xs text-primary">per year (Save 78%)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Identity-Based Templates */}
+              <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
+                <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">🔄</span>
+                  Templates That Adapt to You
+                </h3>
+                <p className="text-gray-400">
+                  Not just one-size-fits-all. Our templates automatically reorder based on your career stage:
+                </p>
+                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-gray-800/50 rounded-lg p-2">
+                    <p className="text-white font-medium">🎓 Student</p>
+                    <p className="text-xs text-gray-400">Education first</p>
+                  </div>
+                  <div className="bg-gray-800/50 rounded-lg p-2">
+                    <p className="text-white font-medium">💼 Professional</p>
+                    <p className="text-xs text-gray-400">Experience first</p>
+                  </div>
+                  <div className="bg-gray-800/50 rounded-lg p-2">
+                    <p className="text-white font-medium">🦋 Career Switcher</p>
+                    <p className="text-xs text-gray-400">Skills first</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI-Powered Tools */}
+              <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
+                <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">🤖</span>
+                  AI That Works for You
+                </h3>
+                <p className="text-gray-400">
+                  From cover letters to ATS optimization, our AI helps you stand out — without replacing your voice.
+                </p>
+                <ul className="mt-4 space-y-2">
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <span className="text-primary">✓</span> GPT-4 Cover Letter Generator
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <span className="text-primary">✓</span> ATS Score Checker
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <span className="text-primary">✓</span> Keyword Optimization
+                  </li>
+                </ul>
+              </div>
+
+              {/* College Partnerships */}
+              <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
+                <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">🏛️</span>
+                  Campus Partnerships
+                </h3>
+                <p className="text-gray-400">
+                  We work directly with colleges to help every student build professional, ATS-optimized resumes — at institutional rates.
+                </p>
+                <div className="mt-4 p-3 bg-gray-800/30 rounded-lg">
+                  <p className="text-sm text-gray-300">
+                    <span className="text-primary font-bold">200+ students</span> from partner colleges already placed in top companies.
+                  </p>
+                </div>
+              </div>
+
+              {/* The Bottom Line */}
+              <div className="bg-gradient-to-r from-primary/20 to-secondary/20 rounded-xl p-6 border border-primary/30">
+                <h3 className="text-xl font-bold text-white mb-2">No fake stories. Just real value.</h3>
+                <p className="text-gray-300">
+                  We don't need to make up success stories. Our product speaks for itself — premium quality at a price that's actually fair.
+                </p>
+                <Link
+                  href="/templates"
+                  className="inline-flex items-center gap-2 mt-4 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                  onClick={() => setShowPromiseModal(false)}
+                >
+                  Start Building Free
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
             </div>
           </motion.div>
         </motion.div>
