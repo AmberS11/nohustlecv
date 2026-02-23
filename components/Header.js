@@ -12,7 +12,7 @@ export default function Header() {
   const { identity, setIdentity } = useIdentity()
 
   const navigation = [
-    { name: 'Home', href: '/home' },
+    { name: 'Home', href: '/' },
     { name: 'About', href: '/about'},
     { name: 'Templates', href: '/templates' },
     { name: 'Resume', href: '/resume' },
