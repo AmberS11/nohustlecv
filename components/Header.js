@@ -3,24 +3,31 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useTheme } from './ThemeProvider'
-import { Menu, X, Sun, Moon } from 'lucide-react'
+import { Menu, X, Sun, Moon, LogOut, User } from 'lucide-react'
 import { useIdentity } from '../context/IdentityContext'
+import { useAuth } from '../context/AuthContext'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const { identity, setIdentity } = useIdentity()
+  const { user, logout } = useAuth()
 
   const navigation = [
     { name: 'Home', href: '/' },
-    { name: 'About', href: '/about'},
     { name: 'Templates', href: '/templates' },
     { name: 'Resume', href: '/resume' },
     { name: 'Cover Letter', href: '/cover-letter' },
     { name: 'ATS Checker', href: '/ats-checker' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'Campus', href: '/campus' },
+    { name: 'About', href: '/about' },
   ]
+
+  const handleLogout = async () => {
+    await logout()
+    window.location.href = '/'
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-dark/80 backdrop-blur-md">
@@ -60,8 +67,8 @@ export default function Header() {
                 className="bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-1 xl:px-2 py-1.5 text-xs xl:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary w-20 xl:w-24"
               >
                 <option value="student">Student</option>
-                <option value="professional">Professional</option>
-                <option value="career_switcher">Career Switcher</option>
+                <option value="professional">Pro</option>
+                <option value="career_switcher">Switch</option>
               </select>
             </div>
 
@@ -78,21 +85,40 @@ export default function Header() {
               )}
             </button>
 
-            {/* Auth Buttons */}
-            <div className="hidden sm:flex items-center space-x-2">
-              <Link
-                href="/login"
-                className="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors whitespace-nowrap"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/signup"
-                className="px-4 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium whitespace-nowrap"
-              >
-                Get Started
-              </Link>
-            </div>
+            {/* Auth Buttons / User Menu */}
+            {user ? (
+              <div className="hidden sm:flex items-center space-x-2">
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-red-500 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <div className="hidden sm:flex items-center space-x-2">
+                <Link
+                  href="/login"
+                  className="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors whitespace-nowrap"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="px-4 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium whitespace-nowrap"
+                >
+                  Get Started
+                </Link>
+              </div>
+            )}
 
             {/* Mobile menu button */}
             <button
@@ -142,20 +168,43 @@ export default function Header() {
 
               {/* Mobile Auth Buttons */}
               <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
-                <Link
-                  href="/login"
-                  className="block px-4 py-2 text-gray-700 dark:text-gray-300 mb-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Log in
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block px-4 py-2 bg-primary text-white rounded-lg text-center"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Get Started
-                </Link>
+                {user ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      className="block px-4 py-2 text-gray-700 dark:text-gray-300 mb-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout()
+                        setMobileMenuOpen(false)
+                      }}
+                      className="block w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-red-500 transition-colors"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="block px-4 py-2 text-gray-700 dark:text-gray-300 mb-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Log in
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="block px-4 py-2 bg-primary text-white rounded-lg text-center"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
