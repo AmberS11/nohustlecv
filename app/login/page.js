@@ -2,11 +2,15 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import { Mail, Lock, ArrowRight } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const { login } = useAuth()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -26,20 +30,20 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (validateForm()) {
       setIsLoading(true)
-      // Here you would integrate with Firebase Auth
-      console.log('Login with:', formData)
       
-      // Simulate API call
-      setTimeout(() => {
+      const result = await login(formData.email, formData.password)
+      
+      if (result.success) {
+        router.push('/dashboard')
+      } else {
+        setErrors({ form: result.error })
         setIsLoading(false)
-        // Redirect to dashboard or templates
-        window.location.href = '/dashboard'
-      }, 1500)
+      }
     }
   }
 
@@ -106,6 +110,11 @@ export default function LoginPage() {
                 </Link>
               </div>
 
+              {/* Error Message */}
+              {errors.form && (
+                <p className="text-red-500 text-sm text-center">{errors.form}</p>
+              )}
+
               {/* Submit Button */}
               <button
                 type="submit"
@@ -144,7 +153,7 @@ export default function LoginPage() {
                 <p><span className="font-medium">Password:</span> demo123</p>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                (These will work after Firebase Auth is implemented)
+                (Create an account first to use these)
               </p>
             </div>
           </div>
