@@ -1,7 +1,13 @@
 import { Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
-import SignupForm from './SignupForm'
+
+// Dynamically import the SignupForm with SSR disabled
+const SignupForm = dynamic(
+  () => import('./SignupForm'),
+  { ssr: false }
+)
 
 export default function SignupPage() {
   return (
