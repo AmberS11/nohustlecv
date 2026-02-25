@@ -63,22 +63,27 @@ export default function SignupForm() {
     e.preventDefault()
     setLoading(true)
     
-    const result = await signup(
-      formData.email,
-      formData.password,
-      formData.name,
-      formData.identity
-    )
-    
-    if (result.success) {
-      // Redirect based on plan
-      if (selectedPlan === 'free') {
-        window.location.href = '/templates'
+    try {
+      const result = await signup(
+        formData.email,
+        formData.password,
+        formData.name,
+        formData.identity
+      )
+      
+      if (result?.success) {
+        // Redirect based on plan
+        if (selectedPlan === 'free') {
+          window.location.href = '/templates'
+        } else {
+          window.location.href = '/pricing?checkout=' + selectedPlan
+        }
       } else {
-        window.location.href = '/pricing?checkout=' + selectedPlan
+        setErrors({ form: result?.error || 'Signup failed. Please try again.' })
+        setLoading(false)
       }
-    } else {
-      setErrors({ form: result.error })
+    } catch (error) {
+      setErrors({ form: error.message })
       setLoading(false)
     }
   }
