@@ -15,13 +15,13 @@ export default function Header() {
 
   const navigation = [
     { name: 'Home', href: '/' },
+     { name: 'About', href: '/about' },
     { name: 'Templates', href: '/templates' },
     { name: 'Resume', href: '/resume' },
     { name: 'Cover Letter', href: '/cover-letter' },
     { name: 'ATS Checker', href: '/ats-checker' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'Campus', href: '/campus' },
-    { name: 'About', href: '/about' },
   ]
 
   const handleLogout = async () => {
