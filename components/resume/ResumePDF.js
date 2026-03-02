@@ -1,9 +1,7 @@
 'use client'
 
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer'
+import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer'
 
-// Register a standard PDF font (Helvetica) instead of custom font
-// This avoids font embedding errors
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -21,6 +19,14 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     objectFit: 'cover'
+  },
+  photoPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   headerText: {
     flex: 1
@@ -155,25 +161,27 @@ export default function ResumePDF({ data, templateId, isWatermarked = false }) {
   const renderPhoto = () => {
     if (data.personal.photo) {
       return (
-        <View style={styles.photo}>
-          <Text>Photo</Text> {/* Simple placeholder since images in PDF are complex */}
-        </View>
+        <Image 
+          src={data.personal.photo} 
+          style={styles.photo}
+          cache={false}
+        />
       )
     }
-    return null
+    return (
+      <View style={styles.photoPlaceholder}>
+        <Text style={{ fontSize: 24, color: '#999' }}>📷</Text>
+      </View>
+    )
   }
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         
-        {/* Header */}
+        {/* Header with Photo */}
         <View style={styles.header}>
-          {data.personal.photo && (
-            <View style={styles.photo}>
-              <Text>📷</Text> {/* Emoji fallback for photo */}
-            </View>
-          )}
+          {renderPhoto()}
           <View style={styles.headerText}>
             <Text style={styles.name}>{data.personal.name || 'Your Name'}</Text>
             <Text style={styles.title}>{data.personal.title || 'Professional'}</Text>
