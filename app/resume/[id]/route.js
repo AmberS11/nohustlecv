@@ -60,3 +60,46 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+
+export async function DELETE(request, { params }) {
+  try {
+    // Get auth token from header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const token = authHeader.split('Bearer ')[1]
+    
+    // Verify token
+    const decodedToken = await auth.verifyIdToken(token)
+    const userId = decodedToken.uid
+
+    // Get resume by ID
+    const resumeId = params.id
+    const resumeDoc = await db.collection('resumes').doc(resumeId).get()
+
+    if (!resumeDoc.exists) {
+      return NextResponse.json({ error: 'Resume not found' }, { status: 404 })
+    }
+
+    const resumeData = resumeDoc.data()
+    
+    // Verify ownership
+    if (resumeData.userId !== userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    // Delete the resume
+    await db.collection('resumes').doc(resumeId).delete()
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Resume deleted successfully'
+    })
+
+  } catch (error) {
+    console.error('Delete resume error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
