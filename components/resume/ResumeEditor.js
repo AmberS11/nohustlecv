@@ -1,86 +1,166 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useIdentity } from '../../context/IdentityContext'
+import { useAuth } from '../../context/AuthContext'
 import { templates, getSectionOrder } from '../templates/TemplateData'
-import { GripVertical, Plus, Trash2, Save, Upload, Undo2, Redo2, Eye, EyeOff } from 'lucide-react'
+import { GripVertical, Plus, Trash2, Save, Upload, Undo2, Redo2, Eye, EyeOff, Cloud, CheckCircle, AlertCircle } from 'lucide-react'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import ResumePDF from './ResumePDF'
 
-export default function ResumeEditor({ templateId = 'modern-professional' }) {
+export default function ResumeEditor({ templateId: propTemplateId }) {
+  const searchParams = useSearchParams()
+  const resumeIdFromUrl = searchParams.get('id')
+  
   const { identity } = useIdentity()
+  const { user } = useAuth()
   const [isPro] = useState(false)
   const fileInputRef = useRef(null)
+  
+  // State
+  const [resumeId, setResumeId] = useState(resumeIdFromUrl)
+  const [saveStatus, setSaveStatus] = useState('idle') // 'idle', 'saving', 'saved', 'error'
+  const [lastSaved, setLastSaved] = useState(null)
+  const [isLoading, setIsLoading] = useState(!!resumeIdFromUrl)
   
   // History for undo/redo
   const [history, setHistory] = useState([])
   const [historyIndex, setHistoryIndex] = useState(-1)
   
-  // Load from localStorage or use defaults
-  const loadSavedData = () => {
-    const saved = localStorage.getItem('resumeData')
-    if (saved) {
-      try {
-        return JSON.parse(saved)
-      } catch (e) {
-        console.error('Failed to parse saved data', e)
-      }
-    }
-    return {
-      personal: {
-        name: 'John Doe',
-        title: 'Software Engineer',
-        email: 'john@example.com',
-        phone: '+91 98765 43210',
-        location: 'Mumbai, India',
-        photo: null
-      },
-      summary: 'Experienced software engineer with a passion for building beautiful products.',
-      experience: [
-        { id: 'exp1', company: 'Tech Corp', role: 'Senior Developer', years: '2022-Present', description: 'Led team of 5 developers building cloud infrastructure.', visible: true },
-        { id: 'exp2', company: 'Startup Inc', role: 'Developer', years: '2020-2022', description: 'Built mobile apps using React Native.', visible: true }
-      ],
-      education: [
-        { id: 'edu1', school: 'University of Mumbai', degree: 'B.Tech Computer Science', year: '2020', grade: '8.9 CGPA', visible: true }
-      ],
-      skills: ['JavaScript', 'React', 'Node.js', 'Python', 'UI/UX'],
-      customSections: []
-    }
-  }
-
-  const [resumeData, setResumeData] = useState(loadSavedData())
-  const [lastSaved, setLastSaved] = useState(null)
+  // Drag state
   const [draggedItem, setDraggedItem] = useState(null)
   const [dragOverItem, setDragOverItem] = useState(null)
+  
+  // Template state
   const [selectedTemplate, setSelectedTemplate] = useState(
-    templates.find(t => t.id === templateId) || templates[0]
+    templates.find(t => t.id === (propTemplateId || 'modern-professional')) || templates[0]
   )
+  
   const [hiddenSections, setHiddenSections] = useState({})
 
-  // Save to history on data change (for undo/redo)
+  // Load default data
+  const loadDefaultData = () => ({
+    personal: {
+      name: 'John Doe',
+      title: 'Software Engineer',
+      email: 'john@example.com',
+      phone: '+91 98765 43210',
+      location: 'Mumbai, India',
+      photo: null
+    },
+    summary: 'Experienced software engineer with a passion for building beautiful products.',
+    experience: [
+      { id: 'exp1', company: 'Tech Corp', role: 'Senior Developer', years: '2022-Present', description: 'Led team of 5 developers building cloud infrastructure.', visible: true },
+      { id: 'exp2', company: 'Startup Inc', role: 'Developer', years: '2020-2022', description: 'Built mobile apps using React Native.', visible: true }
+    ],
+    education: [
+      { id: 'edu1', school: 'University of Mumbai', degree: 'B.Tech Computer Science', year: '2020', grade: '8.9 CGPA', visible: true }
+    ],
+    skills: ['JavaScript', 'React', 'Node.js', 'Python', 'UI/UX'],
+    customSections: []
+  })
+
+  const [resumeData, setResumeData] = useState(loadDefaultData())
+
+  // Load resume from Firestore if ID exists
   useEffect(() => {
-    if (historyIndex === -1 || JSON.stringify(history[historyIndex]) !== JSON.stringify(resumeData)) {
+    const loadResume = async () => {
+      if (!resumeIdFromUrl || !user) return
+
+      setIsLoading(true)
+      try {
+        const token = await user.getIdToken()
+        const response = await fetch(`/api/resume/${resumeIdFromUrl}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        
+        const result = await response.json()
+        
+        if (result.success) {
+          setResumeData(result.resume.data)
+          setResumeId(result.resume.id)
+          setSelectedTemplate(
+            templates.find(t => t.id === result.resume.templateId) || templates[0]
+          )
+        }
+      } catch (error) {
+        console.error('Failed to load resume:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadResume()
+  }, [resumeIdFromUrl, user])
+
+  // Save to history on data change
+  useEffect(() => {
+    if (!isLoading && (historyIndex === -1 || JSON.stringify(history[historyIndex]) !== JSON.stringify(resumeData))) {
       const newHistory = history.slice(0, historyIndex + 1)
       newHistory.push(resumeData)
       setHistory(newHistory)
       setHistoryIndex(newHistory.length - 1)
     }
-  }, [resumeData, history, historyIndex])
+  }, [resumeData, history, historyIndex, isLoading])
 
-  // Autosave whenever data changes
+  // Save to Firestore when user is logged in
+  const saveToFirestore = async () => {
+    if (!user) {
+      setSaveStatus('error')
+      return
+    }
+
+    setSaveStatus('saving')
+    try {
+      const token = await user.getIdToken()
+      const response = await fetch('/api/resume/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          resumeId,
+          resumeData,
+          templateId: selectedTemplate.id
+        })
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        setResumeId(result.resumeId)
+        setSaveStatus('saved')
+        setLastSaved(new Date().toLocaleTimeString())
+        setTimeout(() => setSaveStatus('idle'), 3000)
+      } else {
+        setSaveStatus('error')
+      }
+    } catch (error) {
+      console.error('Save failed:', error)
+      setSaveStatus('error')
+    }
+  }
+
+  // Auto-save to localStorage as backup
   useEffect(() => {
-    localStorage.setItem('resumeData', JSON.stringify(resumeData))
-    setLastSaved(new Date().toLocaleTimeString())
-  }, [resumeData])
+    if (!isLoading) {
+      localStorage.setItem('resumeData', JSON.stringify(resumeData))
+      localStorage.setItem('selectedTemplate', selectedTemplate.id)
+    }
+  }, [resumeData, selectedTemplate, isLoading])
 
   useEffect(() => {
-    const template = templates.find(t => t.id === templateId) || templates[0]
+    const template = templates.find(t => t.id === (propTemplateId || resumeId ? selectedTemplate.id : 'modern-professional')) || templates[0]
     setSelectedTemplate(template)
-  }, [templateId])
+  }, [propTemplateId, resumeId])
 
-  const sectionOrder = getSectionOrder(templateId, identity)
+  const sectionOrder = getSectionOrder(selectedTemplate.id, identity)
 
-  // Undo/Redo functions
+  // Undo/Redo
   const undo = () => {
     if (historyIndex > 0) {
       setHistoryIndex(historyIndex - 1)
@@ -95,7 +175,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
     }
   }
 
-  // Photo upload handler
+  // Photo upload
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0]
     if (file) {
@@ -116,14 +196,12 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
   // Hide/Show section toggle
   const toggleSectionVisibility = (sectionType, index = null) => {
     if (index !== null) {
-      // Toggle individual item (experience, education)
       const newData = { ...resumeData }
       if (newData[sectionType] && newData[sectionType][index]) {
         newData[sectionType][index].visible = !newData[sectionType][index].visible
         setResumeData(newData)
       }
     } else {
-      // Toggle entire section type
       setHiddenSections(prev => ({
         ...prev,
         [sectionType]: !prev[sectionType]
@@ -133,8 +211,11 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
 
   // Reset to default
   const resetToDefault = () => {
-    localStorage.removeItem('resumeData')
-    window.location.reload()
+    if (confirm('Reset all changes? This cannot be undone.')) {
+      localStorage.removeItem('resumeData')
+      setResumeData(loadDefaultData())
+      setResumeId(null)
+    }
   }
 
   // Drag handlers
@@ -237,13 +318,25 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
     }
   }
 
-  // Calculate total content weight for page break
+  // Calculate content weight for page break
   const calculateContentWeight = () => {
     return (
       (resumeData.experience?.length || 0) * 2 +
       (resumeData.education?.length || 0) * 1.5 +
       (resumeData.customSections?.length || 0) * 2 +
       ((resumeData.skills?.length || 0) > 5 ? 1 : 0)
+    )
+  }
+
+  // Render loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading your resume...</p>
+        </div>
+      </div>
     )
   }
 
@@ -260,9 +353,9 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               <button
                 onClick={() => toggleSectionVisibility('summary')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title={hiddenSections['summary'] ? 'Show section' : 'Hide section'}
+                title="Hide section"
               >
-                {hiddenSections['summary'] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                <EyeOff className="w-4 h-4" />
               </button>
             </div>
             <p className="text-gray-600 dark:text-gray-400">{resumeData.summary}</p>
@@ -277,9 +370,9 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               <button
                 onClick={() => toggleSectionVisibility('experience')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title={hiddenSections['experience'] ? 'Show section' : 'Hide section'}
+                title="Hide section"
               >
-                {hiddenSections['experience'] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                <EyeOff className="w-4 h-4" />
               </button>
             </div>
             {resumeData.experience?.filter(exp => exp.visible !== false).map((exp, idx) => (
@@ -385,9 +478,9 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               <button
                 onClick={() => toggleSectionVisibility('education')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title={hiddenSections['education'] ? 'Show section' : 'Hide section'}
+                title="Hide section"
               >
-                {hiddenSections['education'] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                <EyeOff className="w-4 h-4" />
               </button>
             </div>
             {resumeData.education?.filter(edu => edu.visible !== false).map((edu, idx) => (
@@ -483,9 +576,9 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
               <button
                 onClick={() => toggleSectionVisibility('skills')}
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title={hiddenSections['skills'] ? 'Show section' : 'Hide section'}
+                title="Hide section"
               >
-                {hiddenSections['skills'] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                <EyeOff className="w-4 h-4" />
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -528,7 +621,6 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
   }
 
   const totalContentWeight = calculateContentWeight()
-  const hasHiddenSections = Object.keys(hiddenSections).filter(key => hiddenSections[key]).length > 0
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
@@ -541,6 +633,35 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-dark dark:text-light">Edit Your Resume</h2>
             <div className="flex items-center gap-2">
+              
+              {/* Cloud Save Button */}
+              {user && (
+                <button
+                  onClick={saveToFirestore}
+                  disabled={saveStatus === 'saving'}
+                  className={`p-2 rounded-lg transition-colors ${
+                    saveStatus === 'saved' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
+                    saveStatus === 'error' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                    'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                  }`}
+                  title={
+                    saveStatus === 'saved' ? 'Saved to cloud' :
+                    saveStatus === 'error' ? 'Save failed' :
+                    'Save to cloud'
+                  }
+                >
+                  {saveStatus === 'saving' ? (
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : saveStatus === 'saved' ? (
+                    <CheckCircle className="w-5 h-5" />
+                  ) : saveStatus === 'error' ? (
+                    <AlertCircle className="w-5 h-5" />
+                  ) : (
+                    <Cloud className="w-5 h-5" />
+                  )}
+                </button>
+              )}
+
               <button
                 onClick={undo}
                 disabled={historyIndex <= 0}
@@ -695,45 +816,6 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
             </p>
           </div>
 
-          {/* Hidden Sections Manager */}
-          {hasHiddenSections && (
-            <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-              <div className="flex justify-between items-center">
-                <h4 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Hidden Sections</h4>
-                <button
-                  onClick={() => {
-                    const sections = Object.keys(hiddenSections).filter(key => hiddenSections[key])
-                    if (sections.length > 0) {
-                      const newHidden = { ...hiddenSections }
-                      sections.forEach(s => delete newHidden[s])
-                      setHiddenSections(newHidden)
-                    }
-                  }}
-                  className="text-xs px-2 py-1 bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 rounded hover:bg-yellow-300 dark:hover:bg-yellow-700"
-                >
-                  Unhide All
-                </button>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {Object.keys(hiddenSections).filter(key => hiddenSections[key]).map(section => (
-                  <button
-                    key={section}
-                    onClick={() => {
-                      setHiddenSections(prev => ({
-                        ...prev,
-                        [section]: false
-                      }))
-                    }}
-                    className="text-xs px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-1"
-                  >
-                    <Eye className="w-3 h-3" />
-                    {section.charAt(0).toUpperCase() + section.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Dynamic Sections */}
           {sectionOrder.map(sectionType => renderSection(sectionType))}
 
@@ -760,7 +842,6 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
                       setResumeData(newData)
                     }}
                     className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    title={section.visible ? 'Hide' : 'Show'}
                   >
                     {section.visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -808,7 +889,7 @@ export default function ResumeEditor({ templateId = 'modern-professional' }) {
           <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
             <h3 className="font-semibold mb-3 text-dark dark:text-light">Export Resume</h3>
             <PDFDownloadLink
-              document={<ResumePDF data={resumeData} templateId={templateId} isWatermarked={!isPro} />}
+              document={<ResumePDF data={resumeData} templateId={selectedTemplate.id} isWatermarked={!isPro} />}
               fileName={`${resumeData.personal.name.replace(/\s+/g, '_')}_Resume.pdf`}
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
